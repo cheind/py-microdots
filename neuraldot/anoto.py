@@ -186,82 +186,128 @@ A_BASES = np.array([1, 3, 3 * 3, 2 * 3 * 3])
 # fmt: on
 
 
-def compute_mns_roll(pos: int, prev_roll: int) -> int:
-    if pos == 0:
-        return prev_roll
-    rs = np.remainder(pos - 1, SECONDARY_SEQUENCE_LENGTHS)
-    abits = np.array(
-        [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)], dtype=np.int32
-    )  # (4,5)
-    delta = A_BASES.reshape(1, 4) @ abits[:, 0:1] + 5  # [5,58]
-    return (prev_roll + delta.item()) % MNS_LENGTH
+class Anoto:
+    def __init__(self) -> None:
+        self.sns_lengths = (len(A1), len(A2), len(A3), len(A4))
+        self.a_bases = np.array([1, 3, 3 * 3, 2 * 3 * 3])
+        self.qs = np.array([135, 145, 17, 62])
+        self.L = np.prod(self.sns_lengths)
 
+    def encode_bitmatrix(self, shape: tuple[int, int], section=(0, 0)) -> np.ndarray:
+        """Generates a NxMx2 bitmatrix encoding x,y positions."""
+        # find multiples of 63 for ease of generation
+        mshape = (
+            int(63 * np.ceil(shape[0] / 63)),
+            int(63 * np.ceil(shape[1] / 63)),
+        )
+        m = np.empty(mshape + (2,), dtype=np.int8)
+        # x-direction
+        roll = section[0] % 63
+        ytiles = mshape[0] // 63
+        for x in range(mshape[1]):
+            roll = self._compute_mns_roll(x, roll)
+            s = np.roll(MNS, -roll)
+            m[:, x, 0] = np.tile(s, ytiles)
 
-def generate_bitmatrix(shape: tuple[int, int], section=(0, 0)):
-    # find multiples of 63 for ease of generation
-    mshape = (
-        int(63 * np.ceil(shape[0] / 63)),
-        int(63 * np.ceil(shape[1] / 63)),
-    )
-    m = np.empty(mshape + (2,), dtype=np.int8)
-    # x-direction
-    roll = section[0]
-    ytiles = mshape[0] // 63
-    for x in range(mshape[1]):
-        roll = compute_mns_roll(x, roll)
-        s = np.roll(MNS, -roll)
-        m[:, x, 0] = np.tile(s, ytiles)
+        # y-direction
+        roll = section[1] % 63
+        xtiles = mshape[1] // 63
+        for y in range(mshape[0]):
+            roll = self._compute_mns_roll(y, roll)
+            s = np.roll(MNS, -roll)
+            m[y, :, 1] = np.tile(s, xtiles)
 
-    # y-direction
-    roll = section[1]
-    xtiles = mshape[1] // 63
-    for y in range(mshape[0]):
-        roll = compute_mns_roll(y, roll)
-        s = np.roll(MNS, -roll)
-        m[y, :, 1] = np.tile(s, xtiles)
+        return m[: shape[0], : shape[1]]
 
-    return m[: shape[0], : shape[1]]
+    def _compute_mns_roll(self, pos: int, prev_roll: int) -> int:
+        if pos == 0:
+            return prev_roll
 
+        # To find the roll of MNS for pos, we need to determine
+        # the delta corresponding to [pos-1,pos]
+        delta = self._compute_deltae(pos - 1)[0]
+        return (prev_roll + delta.item()) % MNS_LENGTH
 
-def decode_bitmatrix(bits: np.ndarray) -> tuple[int, int]:
-    bits = bits[:6, :6]  # in case a bigger matrix is given
+    def _compute_deltae(self, pos: int) -> np.ndarray:
+        """Computes 5 delta values between [pos,pos+5]."""
+        rs = np.remainder(pos, self.sns_lengths)
 
-    def _decode(m):
+        abits = np.array(
+            [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)], dtype=np.int32
+        )  # (4,5)
+        delta = self.a_bases.reshape(1, 4) @ abits + 5  # [5,58]
+        return delta.reshape(-1)  # (5,)
 
-        loc_MNS = np.array([CMNS_bytes.find(s.tobytes()) for s in m], dtype=np.int32)
+    def decode_bitmatrix(self, bits: np.ndarray) -> tuple[int, int]:
+        """Decodes the (N,M,2) bitmatrix into a unique xy location corresponding to the upper-left element."""
+        assert bits.shape[0] >= 6 and bits.shape[1] >= 6
+        bits = bits[:6, :6]  # in case a bigger matrix is given
+        xy = (
+            self._decode_bitmatrix_direction(bits[..., 0].T),
+            self._decode_bitmatrix_direction(bits[..., 1]),
+        )
+
+        # TODO: compute section values.
+
+        return xy
+
+    def _decode_bitmatrix_direction(self, bits: np.ndarray) -> int:
+        """Decodes the position along a single direction.
+
+        It is assumed that the MNS is along rows. So, if you decode the x-direction
+        make sure to transpose the bitmatrix before passing to this method.
+        """
+
+        # Compute the 6 locations in the MNS via byte matching
+        loc_MNS = np.array([CMNS_bytes.find(s.tobytes()) for s in bits], dtype=np.int32)
+        # Compute the 5 differences modulo the length of MNS
         deltae = np.remainder(loc_MNS[1:] - loc_MNS[:-1], len(MNS))
-        deltae -= 5
-        a4 = deltae // A_BASES[3]
-        deltae = np.remainder(deltae, A_BASES[3])
-        a3 = deltae // A_BASES[2]
-        deltae = np.remainder(deltae, A_BASES[2])
-        a2 = deltae // A_BASES[1]
-        deltae = np.remainder(deltae, A_BASES[1])
-        a1 = deltae // A_BASES[0]
+        if not np.logical_and(deltae >= 5, deltae <= 58).all():
+            raise ValueError("Decoding error")
 
+        # Find 5 a1...a4 coefficients by integer division
+        deltae -= 5
+        a4 = deltae // self.a_bases[3]
+        deltae = np.remainder(deltae, self.a_bases[3])
+        a3 = deltae // self.a_bases[2]
+        deltae = np.remainder(deltae, self.a_bases[2])
+        a2 = deltae // self.a_bases[1]
+        deltae = np.remainder(deltae, self.a_bases[1])
+        a1 = deltae // self.a_bases[0]
+
+        # Find the 4 locations of substrings of length 5
         p1 = CA1_bytes.find(a1.astype(np.int8).tobytes())
         p2 = CA2_bytes.find(a2.astype(np.int8).tobytes())
         p3 = CA3_bytes.find(a3.astype(np.int8).tobytes())
         p4 = CA4_bytes.find(a4.astype(np.int8).tobytes())
+        print(p1, p2, p3, p4)
 
-        q = np.array([135, 145, 17, 62])
+        # find smallest positive p such that the congruences
+        # p1 = p mod 236
+        # p2 = p mod 233
+        # p3 = p mod 31
+        # p4 = p mod 241
+        # According to the chinese remainder theorem there
+        # p will be unique for p < L.
+        # TODO explain how the system of equations is solved.
 
         p = 0
-        p += L // SECONDARY_SEQUENCE_LENGTHS[0] * p1 * q[0]
-        p += L // SECONDARY_SEQUENCE_LENGTHS[1] * p2 * q[1]
-        p += L // SECONDARY_SEQUENCE_LENGTHS[2] * p3 * q[2]
-        p += L // SECONDARY_SEQUENCE_LENGTHS[3] * p4 * q[3]
-        return p % L
-
-    return _decode(bits[..., 0].T), _decode(bits[..., 1])
+        p += self.L // self.sns_lengths[0] * p1 * self.qs[0]
+        p += self.L // self.sns_lengths[1] * p2 * self.qs[1]
+        p += self.L // self.sns_lengths[2] * p3 * self.qs[2]
+        p += self.L // self.sns_lengths[3] * p4 * self.qs[3]
+        return p % self.L
 
 
 if __name__ == "__main__":
 
-    np.set_printoptions(threshold=np.inf)
-    m = generate_bitmatrix((32, 16), section=(10, 10))
-    print(m[..., 1])
-    print(decode_bitmatrix(m[10:, 0:]))
+    anoto = Anoto()
+    m = anoto.encode_bitmatrix(shape=(32, 32), section=(0, 0))
+
+    # np.set_printoptions(threshold=np.inf)
+    # m = generate_bitmatrix((32, 16), section=(10, 10))
+
+    print(anoto.decode_bitmatrix(m[0:, 0:]))
 
     # r = 0
     # for i in range(10):
