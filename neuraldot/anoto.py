@@ -1,3 +1,4 @@
+from email.mime import base
 import numpy as np
 
 
@@ -56,6 +57,7 @@ A1 = np.array(
         2,0,0,2,1,1,2,2
     ]
 )
+CA1 = np.concatenate((A1, A1[:4]))
 
 """
 Secondary number sequence for the a2 coefficient.
@@ -88,6 +90,7 @@ A2 = np.array(
         2,0,2,2,2
     ]
 )
+CA2 = np.concatenate((A2, A2[:4]))
 
 """
 Secondary number sequence for the a3 coefficient.
@@ -109,6 +112,7 @@ A3 = np.array(
         1,0,1,0,1,1,0,1,1,1,0,1
     ]
 )
+CA3 = np.concatenate((A3, A3[:4]))
 
 """
 Secondary number sequence for the a4 coefficient.
@@ -144,5 +148,80 @@ A4 = np.array(
         1,1,2,2,1,1,2,1,2,2,2,2,1,2,0,1,2,2,1,2,2,0,2,2,2,1,1,1
     ]
 )
+CA4 = np.concatenate((A4, A4[:4]))
+
+MNS_LENGTH = len(MNS) # 63
+SECONDARY_SEQUENCE_LENGTHS = (len(A1), len(A2), len(A3), len(A4))
+A_BASES = np.array([1, 3, 3 * 3, 2 * 3 * 3]).reshape(1, 4)
 
 # fmt: on
+
+
+def compute_mns_roll(pos: int, prev_roll: int):
+    if pos == 0:
+        return prev_roll
+    rs = np.remainder(pos - 1, SECONDARY_SEQUENCE_LENGTHS)
+    abits = np.array(
+        [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)]
+    )  # (4,5)
+    delta = A_BASES @ abits[:, 0:1] + 5  # [5,58]
+    return (prev_roll + delta.item()) % MNS_LENGTH
+
+
+def generate_bitmatrix(shape: tuple[int, int], section=(0, 0)):
+    # find multiples of 63 for ease of generation
+    mshape = (
+        int(63 * np.ceil(shape[0] / 63)),
+        int(63 * np.ceil(shape[1] / 63)),
+    )
+    m = np.empty(mshape + (2,))
+    # x-direction
+    roll = section[0]
+    ytiles = mshape[0] // 63
+    for x in range(mshape[1]):
+        roll = compute_mns_roll(x, roll)
+        s = np.roll(MNS, -roll)
+        m[:, x, 0] = np.tile(s, ytiles)
+
+    # y-direction
+    roll = section[1]
+    xtiles = mshape[1] // 63
+    for y in range(mshape[0]):
+        roll = compute_mns_roll(x, roll)
+        s = np.roll(MNS, -roll)
+        m[y, :, 1] = np.tile(s, xtiles)
+
+    return m[: shape[0], : shape[1]]
+
+
+# def encode(x: int, section_start: int = 0):
+
+#     rs = [x % length for length in SECONDARY_LENGTHS]
+#     ds = np.array([seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)])
+#     deltae = A_BASES @ ds + 5  # [5,58]
+#     #integrate to positions
+#     mns_pos = x-section_start
+
+
+#     # print(deltae)
+#     return deltae
+
+
+if __name__ == "__main__":
+
+    np.set_printoptions(threshold=np.inf)
+    m = generate_bitmatrix((32, 16))
+    print(repr(m[..., 0]))
+    # r = 0
+    # for i in range(10):
+    #     r = compute_mns_roll(i, r)
+    #     print(i, r)
+
+    # maxd = 0
+    # mind = 1000
+    # for i in range(0, 1000):
+    #     d = encode(i)
+    #     maxd = max(maxd, d.max())
+    #     mind = min(mind, d.min())
+
+    # print(mind, maxd)
