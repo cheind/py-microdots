@@ -22,8 +22,15 @@ MNS = np.array(
         1,0,0,0,0,1,1,1,0,1,1,1,0,0,1,0,1,0,
         1,0,0,0,1,0,1,1,0,1,1,0,0,1,1,0,1,0,
         1,1,1,1,0,0,0,1,1
-    ]
+    ],
+    dtype=np.int8
 )
+
+"""Cyclic version of MNS sequence."""
+CMNS = np.concatenate((MNS, MNS[:5]))
+
+"""Converted to bytes for fast index lookup of sub-arrays."""
+CMNS_bytes = CMNS.tobytes()
 
 """
 Secondary number sequence for the a1 coefficient.
@@ -38,7 +45,6 @@ https://patentimages.storage.googleapis.com/b8/ef/c2/046cdc9e044b9e/US7999798.pd
 
 Aboufadel, Edward, Timothy Armstrong, and Elizabeth Smietana.
 "Position coding." arXiv preprint arXiv:0706.0869 (2007).
-
 """
 A1 = np.array(
     [
@@ -55,9 +61,14 @@ A1 = np.array(
         2,2,1,0,2,2,2,2,2,0,2,1,2,2,2,1,1,1,2,
         1,1,2,0,1,2,2,1,2,2,0,1,2,1,1,1,1,2,2,
         2,0,0,2,1,1,2,2
-    ]
+    ],
+    dtype=np.int8
 )
+
+"""Cylcic version of A1."""
 CA1 = np.concatenate((A1, A1[:4]))
+"""Sequence as bytes for fast index lookup of sub-arrays."""
+CA1_bytes = CA1.tobytes()
 
 """
 Secondary number sequence for the a2 coefficient.
@@ -88,9 +99,15 @@ A2 = np.array(
         2,0,2,0,2,1,1,2,2,1,0,2,2,0,2,1,0,2,1,
         1,0,2,2,2,2,0,1,0,2,2,1,2,2,2,1,1,2,1,
         2,0,2,2,2
-    ]
+    ],
+    dtype=np.int8
 )
+
+"""Cyclic version of A1 sequence."""
 CA2 = np.concatenate((A2, A2[:4]))
+
+"""Cyclic A2 as converted to bytes for fast lookup of sub-arrays."""
+CA2_bytes = CA2.tobytes()
 
 """
 Secondary number sequence for the a3 coefficient.
@@ -110,9 +127,14 @@ A3 = np.array(
     [
         0,0,0,0,0,1,0,0,1,1,0,0,0,1,1,1,1,0,0,
         1,0,1,0,1,1,0,1,1,1,0,1
-    ]
+    ],
+    dtype=np.int8
 )
+"""Cyclic version of A3 sequence."""
 CA3 = np.concatenate((A3, A3[:4]))
+
+"""Cyclic A3 as converted to bytes for fast lookup of sub-arrays."""
+CA3_bytes = CA3.tobytes()
 
 """
 Secondary number sequence for the a4 coefficient.
@@ -146,25 +168,32 @@ A4 = np.array(
         2,0,0,1,1,0,2,1,2,1,0,1,0,2,2,0,2,1,0,2,2,1,1,1,2,0,2,1,1,1,0,
         2,2,2,2,0,2,0,2,2,1,2,1,1,1,1,2,1,2,1,2,2,2,1,0,0,2,1,2,2,1,0,
         1,1,2,2,1,1,2,1,2,2,2,2,1,2,0,1,2,2,1,2,2,0,2,2,2,1,1,1
-    ]
+    ],
+    dtype=np.int8
 )
+
+"""Cyclic version of A4 sequence."""
 CA4 = np.concatenate((A4, A4[:4]))
+
+"""Cyclic A4 as converted to bytes for fast lookup of sub-arrays."""
+CA4_bytes = CA4.tobytes()
 
 MNS_LENGTH = len(MNS) # 63
 SECONDARY_SEQUENCE_LENGTHS = (len(A1), len(A2), len(A3), len(A4))
-A_BASES = np.array([1, 3, 3 * 3, 2 * 3 * 3]).reshape(1, 4)
+L = np.prod(SECONDARY_SEQUENCE_LENGTHS)
+A_BASES = np.array([1, 3, 3 * 3, 2 * 3 * 3])
 
 # fmt: on
 
 
-def compute_mns_roll(pos: int, prev_roll: int):
+def compute_mns_roll(pos: int, prev_roll: int) -> int:
     if pos == 0:
         return prev_roll
     rs = np.remainder(pos - 1, SECONDARY_SEQUENCE_LENGTHS)
     abits = np.array(
-        [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)]
+        [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)], dtype=np.int32
     )  # (4,5)
-    delta = A_BASES @ abits[:, 0:1] + 5  # [5,58]
+    delta = A_BASES.reshape(1, 4) @ abits[:, 0:1] + 5  # [5,58]
     return (prev_roll + delta.item()) % MNS_LENGTH
 
 
@@ -174,7 +203,7 @@ def generate_bitmatrix(shape: tuple[int, int], section=(0, 0)):
         int(63 * np.ceil(shape[0] / 63)),
         int(63 * np.ceil(shape[1] / 63)),
     )
-    m = np.empty(mshape + (2,))
+    m = np.empty(mshape + (2,), dtype=np.int8)
     # x-direction
     roll = section[0]
     ytiles = mshape[0] // 63
@@ -187,31 +216,53 @@ def generate_bitmatrix(shape: tuple[int, int], section=(0, 0)):
     roll = section[1]
     xtiles = mshape[1] // 63
     for y in range(mshape[0]):
-        roll = compute_mns_roll(x, roll)
+        roll = compute_mns_roll(y, roll)
         s = np.roll(MNS, -roll)
         m[y, :, 1] = np.tile(s, xtiles)
 
     return m[: shape[0], : shape[1]]
 
 
-# def encode(x: int, section_start: int = 0):
+def decode_bitmatrix(bits: np.ndarray) -> tuple[int, int]:
+    bits = bits[:6, :6]  # in case a bigger matrix is given
 
-#     rs = [x % length for length in SECONDARY_LENGTHS]
-#     ds = np.array([seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)])
-#     deltae = A_BASES @ ds + 5  # [5,58]
-#     #integrate to positions
-#     mns_pos = x-section_start
+    def _decode(m):
 
+        loc_MNS = np.array([CMNS_bytes.find(s.tobytes()) for s in m], dtype=np.int32)
+        deltae = np.remainder(loc_MNS[1:] - loc_MNS[:-1], len(MNS))
+        deltae -= 5
+        a4 = deltae // A_BASES[3]
+        deltae = np.remainder(deltae, A_BASES[3])
+        a3 = deltae // A_BASES[2]
+        deltae = np.remainder(deltae, A_BASES[2])
+        a2 = deltae // A_BASES[1]
+        deltae = np.remainder(deltae, A_BASES[1])
+        a1 = deltae // A_BASES[0]
 
-#     # print(deltae)
-#     return deltae
+        p1 = CA1_bytes.find(a1.astype(np.int8).tobytes())
+        p2 = CA2_bytes.find(a2.astype(np.int8).tobytes())
+        p3 = CA3_bytes.find(a3.astype(np.int8).tobytes())
+        p4 = CA4_bytes.find(a4.astype(np.int8).tobytes())
+
+        q = np.array([135, 145, 17, 62])
+
+        p = 0
+        p += L // SECONDARY_SEQUENCE_LENGTHS[0] * p1 * q[0]
+        p += L // SECONDARY_SEQUENCE_LENGTHS[1] * p2 * q[1]
+        p += L // SECONDARY_SEQUENCE_LENGTHS[2] * p3 * q[2]
+        p += L // SECONDARY_SEQUENCE_LENGTHS[3] * p4 * q[3]
+        return p % L
+
+    return _decode(bits[..., 0].T), _decode(bits[..., 1])
 
 
 if __name__ == "__main__":
 
     np.set_printoptions(threshold=np.inf)
-    m = generate_bitmatrix((32, 16))
-    print(repr(m[..., 0]))
+    m = generate_bitmatrix((32, 16), section=(10, 10))
+    print(m[..., 1])
+    print(decode_bitmatrix(m[10:, 0:]))
+
     # r = 0
     # for i in range(10):
     #     r = compute_mns_roll(i, r)
