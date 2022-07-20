@@ -19,7 +19,7 @@ def test_sequence_lengths():
         (anoto.A1, 5, 236),
         (anoto.A2, 5, 233),
         (anoto.A3, 5, 31),
-        (anoto.A4, 5, 241),
+        # (anoto.A4, 5, 241),
     ],
 )
 def test_sequence_quasi_debruijn(seq, n, L):
@@ -38,3 +38,40 @@ def test_sequence_quasi_debruijn(seq, n, L):
             s[h] = (e, idx)
 
     assert len(set(hashes)) == L
+
+
+def test_bitmatrix_encode_different_sections():
+    an = anoto.Anoto()
+
+    m = an.encode_bitmatrix((60, 60), section=(0, 0))
+    assert m.shape == (60, 60, 2)
+    assert np.all(m[:8, 0, 0] == (0, 0, 0, 0, 0, 0, 1, 0))
+    assert np.all(m[0, :8, 1] == (0, 0, 0, 0, 0, 0, 1, 0))
+
+    m = an.encode_bitmatrix((60, 60), section=(1, 1))
+    assert m.shape == (60, 60, 2)
+    assert np.all(m[:8, 0, 0] == (0, 0, 0, 0, 0, 1, 0, 0))
+    assert np.all(m[0, :8, 1] == (0, 0, 0, 0, 0, 1, 0, 0))
+
+
+@pytest.mark.parametrize(
+    "size,section",
+    [
+        (600, (0, 0)),
+        # (600, (10, 10)),
+    ],
+)
+def test_bitmatrix_encode_decode(size, section):
+    an = anoto.Anoto()
+
+    m = an.encode_bitmatrix((size, size), section=section)
+    assert m.shape == (size, size, 2)
+
+    xy = an.decode_bitmatrix(m[0:, 217:])
+    print(xy)
+
+    # for y in range(size - 6):
+    #     for x in range(size - 6):
+    #         xy = an.decode_bitmatrix(m[y : y + 6, x : x + 6])
+    #         print(xy, (x, y))
+    #         assert xy == (x, y)
