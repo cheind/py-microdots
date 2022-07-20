@@ -19,7 +19,7 @@ def test_sequence_lengths():
         (anoto.A1, 5, 236),
         (anoto.A2, 5, 233),
         (anoto.A3, 5, 31),
-        # (anoto.A4, 5, 241),
+        (anoto.A4, 5, 241),
     ],
 )
 def test_sequence_quasi_debruijn(seq, n, L):
@@ -68,10 +68,8 @@ def test_bitmatrix_encode_decode(size, section):
     assert m.shape == (size, size, 2)
 
     xy = an.decode_bitmatrix(m[0:, 217:])
-    print(xy)
 
-    # for y in range(size - 6):
-    #     for x in range(size - 6):
-    #         xy = an.decode_bitmatrix(m[y : y + 6, x : x + 6])
-    #         print(xy, (x, y))
-    #         assert xy == (x, y)
+    for y in range(size - 6):
+        for x in range(size - 6):
+            xy = an.decode_bitmatrix(m[y : y + 6, x : x + 6])
+            assert xy == (x, y)
