@@ -20,27 +20,41 @@ def extended_euclid(a, b):
 class CRT:
     """Solves for simulatenous congruences using the Chinese Remainder Theorem (CRT).
 
+    ## Method
     Assume that l1,...,ln are relatively prime, then according to the CRT
-    a natural number x exists for each tuple a1,...,an such that
-        x == ai (mod li),
-    for given remainders ai and == meaning congruent.
+    a natural number x exists such that for each tuple a1,...,an
+        x == ai (mod li)
+    holds. Here ai are the remainders and == means congruent.
 
-    To find x, we make use of the property that
+    The method used below finds x by constructing x as a sum of factors with
+    the property that if we hit x with mod li, all but the i-th term will
+    vanish and x (mod li) can be written as
+        x (mod li) = [0 + ... + ai (mod li) + 0 ... + 0] (mod li) = ai (mod li)
+    as desired.
+
+    We proceed as follows. We know that [1] for any integers c,d two integers
+    r, s exist such that
         gcd(c,d) = r*c + s*d.
-    If additionaly c and d are relatively prime we have
-        1 = r*c + s*d.
-    Assume we let c=li and d=L/li, where L=l1*...*ln. Since l1,...,ln are
-    relatively prime, li and L/li will also be relatively prime.
-    Hence we know that e = s*(L/li) will be 1 (mod li) and 0 otherwise. We can
-    find one such ei corresponding to each li.
-
-    The smallest positive x is then found to be
-        x = e1*a1+...+en*an (mod L)
-
-    Note, by construction for x mod li, all but one (ei*ai) of the above terms
-    vanishes. So, for x mod li we have ei*ai = ai as desired.
+    if c,d are relatively prime we have
+        1=r*c + s*d.
+    Let ci=li and di=l1*...*ln/li. Since all li are pairwise relatively prime,
+    ci and di are relatively prime. Therefore,
+        1=ri*li + si*l1*...*ln/li
+    Apply mod li and distribute we get
+        1 (mod li) = ri*li (mod li) + si*l1*...*ln/li (mod li).
+    Since ri*li (mod li) = 0, we know that
+        1 = si*l1*...*ln/li (mod li)
+    Denote ei = si*l1*...*ln/li and find x as
+        x = e1*a1+...+en*an,
+    which has the desired property that
+        x (mod li)  = [0+...0+ei*ai (mod li)+0...+0] (mod li)
+                    = [ei (mod li) * ai (mod li)] (mod li)
+                    = [1 * ai (mod li)] (mod li)
+                    = ai (mod li).
 
     See:
+    [1] https://mathworld.wolfram.com/GreatestCommonDivisorTheorem.html
+    https://en.wikipedia.org/wiki/Chinese_remainder_theorem
     https://de.wikipedia.org/wiki/Chinesischer_Restsatz#Finden_einer_L%C3%B6sung
     """
 
