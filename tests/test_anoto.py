@@ -57,7 +57,7 @@ def test_bitmatrix_encode_different_sections():
 @pytest.mark.parametrize(
     "size,section",
     [
-        (600, (0, 0)),
+        (256, (0, 0)),
         # (600, (10, 10)),
     ],
 )
