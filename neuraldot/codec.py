@@ -147,8 +147,8 @@ class AnotoDecoder:
             np.int8
         )  # (mns_order-1,num_sns) array
 
-        # Find the locations of substring coefficients, these are the remainders
-        # to the unknown location.
+        # Find the locations of unique sns_order substring coefficients, these are
+        # the remainders to the unknown location.
         ps = [s.find(a.tobytes()) for s, a in zip(self.sns_cyclic, coeffs.T)]
 
         p = self.crt.solve(ps)
