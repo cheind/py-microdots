@@ -125,6 +125,7 @@ class CRT:
         self.L = np.prod(self.lengths)
         self.qs = self._compute_qs(self.lengths)
         self.es = self.qs * (self.L // self.lengths)
+        self.es = self.es.astype(np.int64)
 
     def solve(self, remainders: list[int]) -> int:
         """Returns the smallest positive number solving the remainder congruences.
@@ -155,4 +156,4 @@ if __name__ == "__main__":
 
     crt = CRT([236, 233, 31, 241])
     print(crt.qs)
-    print(crt.solve([97, 176, 3, 2]))
+    print(crt.solve([97, 0, 3, 211]))
