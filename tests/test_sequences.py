@@ -13,16 +13,17 @@ def test_sequence_lengths():
 
 
 @pytest.mark.parametrize(
-    "seq,n,L",
+    "seq,n,L,isdebruijn",
     [
-        (sequences.MNS, 6, 63),
-        (sequences.A1, 5, 236),
-        (sequences.A2, 5, 233),
-        (sequences.A3, 5, 31),
-        (sequences.A4_alt, 5, 241),
+        (sequences.MNS, 6, 63, True),
+        (sequences.A1, 5, 236, True),
+        (sequences.A2, 5, 233, True),
+        (sequences.A3, 5, 31, True),
+        (sequences.A4_alt, 5, 241, True),
+        (sequences.A4, 5, 241, False),
     ],
 )
-def test_sequence_quasi_debruijn(seq, n, L):
+def test_sequence_quasi_debruijn(seq, n, L, isdebruijn):
     # make it cyclic
     cseq = np.concatenate((seq, seq[: (n - 1)]))
     view = np.lib.stride_tricks.sliding_window_view(cseq, n, axis=0)
@@ -37,4 +38,6 @@ def test_sequence_quasi_debruijn(seq, n, L):
         else:
             s[h] = (e, idx)
 
-    assert len(set(hashes)) == L
+    num_unique = len(set(hashes))
+
+    assert num_unique == L if isdebruijn else num_unique < L
