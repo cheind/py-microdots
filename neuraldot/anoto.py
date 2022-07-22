@@ -284,19 +284,14 @@ class Anoto:
 
         # Find 5 a1...a4 coefficients by integer division
         deltae -= 5
-        a4 = deltae // self.a_bases[3]
-        deltae = np.remainder(deltae, self.a_bases[3])
-        a3 = deltae // self.a_bases[2]
-        deltae = np.remainder(deltae, self.a_bases[2])
-        a2 = deltae // self.a_bases[1]
-        deltae = np.remainder(deltae, self.a_bases[1])
-        a1 = deltae // self.a_bases[0]
+        coeffs = self.num_basis.project(deltae).astype(np.int8)  # (N,4) array
+        a1, a2, a3, a4 = coeffs.T
 
         # Find the 4 locations of substrings of length 5
-        p1 = CA1_bytes.find(a1.astype(np.int8).tobytes())
-        p2 = CA2_bytes.find(a2.astype(np.int8).tobytes())
-        p3 = CA3_bytes.find(a3.astype(np.int8).tobytes())
-        p4 = CA4_bytes.find(a4.astype(np.int8).tobytes())
+        p1 = CA1_bytes.find(a1.tobytes())
+        p2 = CA2_bytes.find(a2.tobytes())
+        p3 = CA3_bytes.find(a3.tobytes())
+        p4 = CA4_bytes.find(a4.tobytes())
         # print(p1, p2, p3, p4)
 
         # find smallest positive p such that the congruences
