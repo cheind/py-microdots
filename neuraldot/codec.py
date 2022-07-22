@@ -75,7 +75,7 @@ class AnotoEncoder:
         # Extract the coefficients
         coeffs = np.array(
             [s[r : r + self.sns_order] for s, r in zip(self.sns_cyclic, rs)],
-            dtype=np.int32,
+            dtype=np.int8,
         )  # (num_sns, num_coeff)
         deltae = self.num_basis.reconstruct(coeffs.T) + self.delta_range[0]
         return deltae
