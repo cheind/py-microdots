@@ -4,6 +4,7 @@ from . import integer
 
 
 def _make_cyclic(seq: np.ndarray, order: int) -> np.ndarray:
+    """Appends the first order-1 characters to make cyclic positions locatable."""
     return np.concatenate((seq, seq[: order - 1]))
 
 
@@ -129,6 +130,10 @@ class AnotoDecoder:
         locs = np.array(
             [self.mns_cyclic.find(s.tobytes()) for s in bits], dtype=np.int32
         )
+
+        if (locs < 0).any():
+            raise ValueError("Decoding error")
+
         # Compute the 5 differences modulo the length of MNS
         deltae = np.remainder(locs[1:] - locs[:-1], self.mns_length)
         if not np.logical_and(
