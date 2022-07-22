@@ -208,6 +208,7 @@ class Anoto:
         self.qs = np.array([135, 145, 17, 62])
         self.L = np.prod(self.sns_lengths)
         self.crt = integer.CRT(self.sns_lengths)
+        self.num_basis = integer.NumberBasis([3, 3, 2, 3])
 
     def encode_bitmatrix(self, shape: tuple[int, int], section=(0, 0)) -> np.ndarray:
         """Generates a NxMx2 bitmatrix encoding x,y positions."""
@@ -248,11 +249,11 @@ class Anoto:
         """Computes 5 delta values between [pos,pos+5]."""
         rs = np.remainder(pos, self.sns_lengths)
 
-        abits = np.array(
+        coeffs = np.array(
             [seq[r : r + 5] for seq, r in zip((CA1, CA2, CA3, CA4), rs)], dtype=np.int32
         )  # (4,5)
-        delta = self.a_bases.reshape(1, 4) @ abits + 5  # [5,58]
-        return delta.reshape(-1)  # (5,)
+        deltae = self.num_basis.reconstruct(coeffs.T) + 5
+        return deltae
 
     def decode_bitmatrix(self, bits: np.ndarray) -> tuple[int, int]:
         """Decodes the (N,M,2) bitmatrix into a unique xy location corresponding to the upper-left element."""
