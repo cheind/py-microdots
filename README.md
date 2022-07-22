@@ -51,3 +51,10 @@ So given a position, we compute the remainders in these lists. These remainders 
 Why need SNS be CB(k,5,...)? It means that _no_ set of 5 consecutive delta values (from 6 positions) will repeat, I think. That makes sense, since each set of 5 delta values should be decodable into a unique positions.
 
 Probably we should not worry about which elements from SNS have been removed, it simply means they will not be used in encoding and hence are also not required in decoding.
+
+## Example
+
+Consider MNS B(2,4), |MNS| = 16 unique positions and hence there are 15 delta (mod 16) values. For symmetry assume that we observer 4x4 patterns. Then we want each set of 4-1=3 delta values to be non-repeating. So 15 has prime factors 3\*5 and we can
+have SNS1 = B(3 (alphabet from prime-factor),3 (order - 3 delta)), |SNS1| = 27 and SNS2 = B(5,3), |SNS2| = 125. Since gcd(27,125)=1, SNS1 and 2 are already prime and we will not need any quasi debruijn sequence.
+
+How many elements can we encode? 15\*\*3=3375
