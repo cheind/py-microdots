@@ -32,14 +32,15 @@ class NumberBasis:
 
         Returns:
             coeffs: (M,B) array of coefficients for each number
-                and each basis.
+                and each basis, starting with the b1.
         """
         n = np.asarray(n)
         assert np.logical_and(n >= 0, n < self.upper).all()
         coeffs = []
         for b in self.rbases:
-            coeffs.append(n // b)
-            n = n % b
+            q, r = np.divmod(n, b)
+            coeffs.append(q)
+            n = r
         return np.array(coeffs[::-1], dtype=n.dtype).T
 
     def reconstruct(self, coeffs: np.ndarray) -> np.ndarray:
