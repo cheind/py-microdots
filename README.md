@@ -46,7 +46,7 @@ Out[1]: 410815348
 
 What's the impact of the reduced list lengths? I beleive that some delta values in [0,54) + 5 will simply never appear.
 
-So given a position, we compute the remainders in these lists. These remainders correspond to indices into that lists. The values at those indices in the corresponding lists will be the coefficients of the delta values. Delta values will be used in encoding to determine the roll of the MNS.
+So given a position, we compute the remainders in these lists. These remainders correspond to indices into that lists. The values at those indices in the corresponding lists will be the coefficients of the delta values. Delta values will be used in encoding to determine the roll of the MNS. The roll for position i, can be computed by roll(i-1)+delta(i-1,i) % |MNS|.
 
 Why need SNS be CB(k,5,...)? It means that _no_ set of 5 consecutive delta values (from 6 positions) will repeat, I think. That makes sense, since each set of 5 delta values should be decodable into a unique positions.
 
