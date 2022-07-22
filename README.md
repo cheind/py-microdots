@@ -48,6 +48,6 @@ What's the impact of the reduced list lengths? I beleive that some delta values 
 
 So given a position, we compute the remainders in these lists. These remainders correspond to indices into that lists. The values at those indices in the corresponding lists will be the coefficients of the delta values. Delta values will be used in encoding to determine the roll of the MNS.
 
-Why are SNS then CB(k,5,...)? It means that no set of 5 consecutive delta values will repeat, I think. That makes sense, since each set of 5 delta values should be decodable into a unique positions.
+Why need SNS be CB(k,5,...)? It means that no set of 5 consecutive delta values will repeat, I think. That makes sense, since each set of 5 delta values should be decodable into a unique positions.
 
 Probably we should not worry about which elements from SNS have been cut, it simply means they will not be used in encoding and hence are also not required in decoding.
