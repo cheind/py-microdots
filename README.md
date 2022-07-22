@@ -50,4 +50,4 @@ So given a position, we compute the remainders in these lists. These remainders 
 
 Why need SNS be CB(k,5,...)? It means that _no_ set of 5 consecutive delta values (from 6 positions) will repeat, I think. That makes sense, since each set of 5 delta values should be decodable into a unique positions.
 
-Probably we should not worry about which elements from SNS have been cut, it simply means they will not be used in encoding and hence are also not required in decoding.
+Probably we should not worry about which elements from SNS have been removed, it simply means they will not be used in encoding and hence are also not required in decoding.

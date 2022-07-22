@@ -126,7 +126,7 @@ class AnotoDecoder:
         make sure to transpose the bitmatrix before passing to this method.
         """
 
-        # Compute the 6 locations in the MNS via byte matching
+        # Compute the mns_order locations in the MNS via byte matching
         locs = np.array(
             [self.mns_cyclic.find(s.tobytes()) for s in bits], dtype=np.int32
         )
@@ -145,19 +145,11 @@ class AnotoDecoder:
         deltae -= self.delta_range[0]
         coeffs = self.num_basis.project(deltae).astype(
             np.int8
-        )  # (mns_order,num_sns) array
+        )  # (mns_order-1,num_sns) array
 
-        # Find the locations of substring coefficients.
+        # Find the locations of substring coefficients, these are the remainders
+        # to the unknown location.
         ps = [s.find(a.tobytes()) for s, a in zip(self.sns_cyclic, coeffs.T)]
-
-        # find smallest positive p such that the congruences
-        # p1 = p mod 236
-        # p2 = p mod 233
-        # p3 = p mod 31
-        # p4 = p mod 241
-        # According to the chinese remainder theorem there
-        # p will be unique for p < L.
-        # TODO explain how the system of equations is solved.
 
         p = self.crt.solve(ps)
         return p
