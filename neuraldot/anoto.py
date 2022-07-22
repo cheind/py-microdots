@@ -1,6 +1,6 @@
-from email.mime import base
 import numpy as np
 
+from . import integer
 
 # fmt: off
 """Main number sequence.
@@ -207,6 +207,7 @@ class Anoto:
         self.a_bases = np.array([1, 3, 3 * 3, 2 * 3 * 3])
         self.qs = np.array([135, 145, 17, 62])
         self.L = np.prod(self.sns_lengths)
+        self.crt = integer.CRT(self.sns_lengths)
 
     def encode_bitmatrix(self, shape: tuple[int, int], section=(0, 0)) -> np.ndarray:
         """Generates a NxMx2 bitmatrix encoding x,y positions."""
@@ -306,12 +307,8 @@ class Anoto:
         # p will be unique for p < L.
         # TODO explain how the system of equations is solved.
 
-        p = 0
-        p += self.L // self.sns_lengths[0] * p1 * self.qs[0]
-        p += self.L // self.sns_lengths[1] * p2 * self.qs[1]
-        p += self.L // self.sns_lengths[2] * p3 * self.qs[2]
-        p += self.L // self.sns_lengths[3] * p4 * self.qs[3]
-        return p % self.L
+        p = self.crt.solve([p1, p2, p3, p4])
+        return p
 
 
 if __name__ == "__main__":
