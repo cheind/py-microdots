@@ -35,13 +35,21 @@ In [2]: 54**5
 Out[2]: 459165024
 
 # If we represent 54 via prime factors [2,3,3,3]
-In [6]: (2**5)*(3**5)**3
+In [6]: (2**5)*(3**5)*(3**5)*(3**5)
 Out[6]: 459165024
 
 # However, we need lists to be relatively prime for CRT to work,
 # So we reduce the SNS lengths to
 In [1]: 31*236*233*241
 Out[1]: 410815348
+
+# Also realtive prime ensures a unique 4 tuple for each position. Here is
+# an example using 2 sequences with relative prime sequence. Repeats
+# after 15 elements. Why is that important? Unique n-tuple when taking remainders
+In [30]: s1 = 'abc'   # 3
+In [31]: s2 = 'defgh' # 5
+In [32]: print([(s1[i%3], s2[i%5]) for i in range(16)])
+[('a', 'd'), ('b', 'e'), ('c', 'f'), ('a', 'g'), ('b', 'h'), ('c', 'd'), ('a', 'e'), ('b', 'f'), ('c', 'g'), ('a', 'h'), ('b', 'd'), ('c', 'e'), ('a', 'f'), ('b', 'g'), ('c', 'h'), ('a', 'd')]
 ```
 
 What's the impact of the reduced list lengths? I beleive that some delta values in [0,54) + 5 will simply never appear.
