@@ -42,6 +42,7 @@ Aboufadel, Edward, Timothy Armstrong, and Elizabeth Smietana.
 import numpy as np
 
 # fmt: off
+# flake8: noqa
 """Main number sequence.
 
 A quasi De Bruijn sequence of order 6 and length 63. In a quasi De Bruijn

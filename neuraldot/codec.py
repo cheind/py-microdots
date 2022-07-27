@@ -4,7 +4,8 @@ from . import integer
 
 
 def _make_cyclic(seq: np.ndarray, order: int) -> np.ndarray:
-    """Appends the first order-1 characters to make cyclic positions locatable."""
+    """Appends the first order-1 characters to make cyclic positions
+    locatable."""
     return np.concatenate((seq, seq[: order - 1]))
 
 
@@ -147,8 +148,8 @@ class AnotoDecoder:
             np.int8
         )  # (mns_order-1,num_sns) array
 
-        # Find the locations of unique sns_order substring coefficients, these are
-        # the remainders to the unknown location.
+        # Find the locations of unique sns_order substring coefficients, these
+        # are the remainders to the unknown location.
         ps = [s.find(a.tobytes()) for s, a in zip(self.sns_cyclic, coeffs.T)]
 
         p = self.crt.solve(ps)

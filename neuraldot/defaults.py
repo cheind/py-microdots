@@ -1,4 +1,4 @@
-from .sequences import MNS, A1, A2, A3, A4, A4_alt
+from .anoto_sequences import MNS, A1, A2, A3, A4, A4_alt
 from .codec import AnotoEncoder, AnotoDecoder
 
 
