@@ -1,26 +1,21 @@
 import numpy as np
 import pytest
 
-from neuraldot import sequences
-
-
-def test_sequence_lengths():
-    assert len(sequences.MNS) == 63
-    assert len(sequences.A1) == 236
-    assert len(sequences.A2) == 233
-    assert len(sequences.A3) == 31
-    assert len(sequences.A4) == 241
+from neuraldot import anoto_sequences, mini_sequences
 
 
 @pytest.mark.parametrize(
     "seq,n,L,isdebruijn",
     [
-        (sequences.MNS, 6, 63, True),
-        (sequences.A1, 5, 236, True),
-        (sequences.A2, 5, 233, True),
-        (sequences.A3, 5, 31, True),
-        (sequences.A4_alt, 5, 241, True),
-        (sequences.A4, 5, 241, False),
+        (anoto_sequences.MNS, 6, 63, True),
+        (anoto_sequences.A1, 5, 236, True),
+        (anoto_sequences.A2, 5, 233, True),
+        (anoto_sequences.A3, 5, 31, True),
+        (anoto_sequences.A4_alt, 5, 241, True),
+        (anoto_sequences.A4, 5, 241, False),
+        (mini_sequences.MNS, 4, 16, True),
+        (mini_sequences.A1, 3, 27, True),
+        (mini_sequences.A2, 3, 125, True),
     ],
 )
 def test_sequence_quasi_debruijn(seq, n, L, isdebruijn):
