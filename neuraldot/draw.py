@@ -5,6 +5,7 @@ def draw_dots(
     bitmatrix: np.ndarray,
     offset_lut: np.ndarray = None,
     grid_size: float = 1.0,
+    dot_scale: float = 10.0,
     show_grid: bool = True,
     set_ax_props: bool = True,
     ax=None,
@@ -42,7 +43,6 @@ def draw_dots(
             ]
         )
     offset_scale = grid_size * 1 / 6
-    dot_scale = 10
 
     if ax is None:
         ax = plt.gca()
@@ -50,10 +50,11 @@ def draw_dots(
     offsets = offset_lut[bitmatrix] * offset_scale  # (M,N,2)
     dots = np.stack(
         np.meshgrid(
-            range(bitmatrix.shape[0]), range(bitmatrix.shape[1]), indexing="xy"
+            range(bitmatrix.shape[1]), range(bitmatrix.shape[0]), indexing="xy"
         ),
         -1,
     )
+    print(bitmatrix.shape)
     dots = dots + offsets
     ax.scatter(dots[..., 0], dots[..., 1], s=dot_scale, marker="o", color="k", zorder=2)
 
