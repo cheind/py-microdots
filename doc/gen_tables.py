@@ -9,7 +9,6 @@ def generate_numbers_pfactor_basis():
 
     data = {}
 
-    perm_coeffs = []
     for pf in perms:
         cname = f'[{",".join(str(p) for p in pf)}]'
         coeffs = integer.NumberBasis(pf).project(nums)
