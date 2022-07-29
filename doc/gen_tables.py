@@ -21,4 +21,14 @@ def generate_numbers_pfactor_basis():
     print(df.to_latex())
 
 
+def generate_tuples_relative_prime():
+    data = {}
+    data["$s_1=(2,6)$"] = [{f"$\\langle {i%2},{i%6} \\rangle$"} for i in range(12)]
+    data["$s_2=(3,4)$"] = [{f"$\\langle {i%3},{i%4} \\rangle$"} for i in range(12)]
+
+    df = pd.DataFrame(data)
+    print(df.to_latex(escape=False))
+
+
 generate_numbers_pfactor_basis()
+generate_tuples_relative_prime()
