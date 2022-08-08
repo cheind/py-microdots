@@ -103,28 +103,52 @@ class AnotoDecoder:
         self.crt = integer.CRT(self.sns_lengths)
         self.delta_range = delta_range
 
-    def decode_bitmatrix(self, bits: np.ndarray) -> tuple[int, int]:
-        """Decodes the (N,M,2) bitmatrix into a unique xy location corresponding
-        to the upper-left element."""
+    def decode_bitmatrix(
+        self, bits: np.ndarray
+    ) -> tuple[tuple[int, int], tuple[int, int]]:
+        """Decodes the (N,M,2) bitmatrix into position and section info.
+
+        Params:
+            bits: (N,M,2) matrix of bits. N,M need to be greater than or
+                equal to order of MNS.
+
+        Returns:
+            loc: 2D (x,y) location with the section.
+            sec: (x,y) section tile information.
+        """
         assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
         bits = bits[
             : self.mns_order, : self.mns_order
         ]  # in case a bigger matrix is given
         bits = bits.astype(np.int8)
-        xy = (
-            self._decode_bitmatrix_direction(bits[..., 0].T),
-            self._decode_bitmatrix_direction(bits[..., 1]),
+
+        x, xloc_mns = self._decode_bitmatrix_direction(bits[..., 0].T)
+        y, yloc_mns = self._decode_bitmatrix_direction(bits[..., 1])
+
+        xy = (x, y)
+        sec = (
+            (xloc_mns - y) % self.mns_length,
+            (yloc_mns - x) % self.mns_length,
         )
 
-        # TODO: compute section values.
+        return xy, sec
 
-        return xy
-
-    def _decode_bitmatrix_direction(self, bits: np.ndarray) -> int:
+    def _decode_bitmatrix_direction(self, bits: np.ndarray) -> tuple[int, int]:
         """Decodes the position along a single direction.
 
         It is assumed that the MNS is along rows. So, if you decode the x-direction
         make sure to transpose the bitmatrix before passing to this method.
+
+        Params:
+            bits: (M,M) matrix where M equals the order of the MNS sequence. It is
+                assumed that the MNS is repeated along rows of the given matrix. That
+                is, for decoding the x-direction one should transpose the bitmatrix
+                before passing it to this method.
+
+        Returns:
+            pos: position along the direction
+            mns_loc: index of the first partial sequence of bits in the MNS. This
+                value can be used to decode the section at a later state.
         """
 
         # Compute the mns_order locations in the MNS via byte matching
@@ -153,4 +177,4 @@ class AnotoDecoder:
         ps = [s.find(a.tobytes()) for s, a in zip(self.sns_cyclic, coeffs.T)]
 
         p = self.crt.solve(ps)
-        return p
+        return p, locs[0]

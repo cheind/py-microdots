@@ -34,8 +34,10 @@ def test_bitmatrix_decode(size, section):
 
     for y in range(size - 6):
         for x in range(size - 6):
-            xy = dec.decode_bitmatrix(m[y : y + 6, x : x + 6])
+            print(x, y)
+            xy, sec = dec.decode_bitmatrix(m[y : y + 6, x : x + 6])
             assert xy == (x, y)
+            assert sec == section
 
 
 def test_bitmatrix_decode_fail_origa4():
