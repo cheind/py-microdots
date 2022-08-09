@@ -1,6 +1,7 @@
 import numpy as np
 
 from . import integer
+from .exceptions import DecodingError
 
 
 def _make_cyclic(seq: np.ndarray, order: int) -> np.ndarray:
@@ -101,25 +102,35 @@ class AnotoCodec:
         Returns:
             loc: 2D (x,y) location wrt to section coordinate system
         """
-        assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
-        bits = bits[
-            : self.mns_order, : self.mns_order
-        ]  # in case a bigger matrix is given
-        bits = bits.astype(np.int8)
+        bits = np.asarray(bits)
+        self._assert_bitmatrix_shape(bits)
+        # in case a bigger matrix is given
+        bits = bits[: self.mns_order, : self.mns_order].astype(np.int8)
 
         x = self._decode_location_along_direction(bits[..., 0].T)
         y = self._decode_location_along_direction(bits[..., 1])
 
         return (x, y)
 
+    def _assert_bitmatrix_shape(self, bits: np.ndarray):
+        if bits.ndim != 3:
+            raise DecodingError(f"Excepted a (M,N,2) matrix, but got {bits.shape}")
+        N, M, C = bits.shape
+        if N < self.mns_order or M < self.mns_order or C != 2:
+            raise DecodingError(f"Excepted a (M,N,2) matrix, but got {bits.shape}")
+
     def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
-        assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
-        bits = bits.astype(np.int8)
-        px_mns = self.mns_cyclic_bytes.find(bits[: self.mns_order, 0, 0].tobytes())
-        py_mns = self.mns_cyclic_bytes.find(bits[0, : self.mns_order, 1].tobytes())
+        bits = np.asarray(bits)
+        self._assert_bitmatrix_shape(bits)
+        px_mns = self.mns_cyclic_bytes.find(
+            bits[: self.mns_order, 0, 0].astype(np.int8).tobytes()
+        )
+        py_mns = self.mns_cyclic_bytes.find(
+            bits[0, : self.mns_order, 1].astype(np.int8).tobytes()
+        )
 
         if (px_mns < 0) or (py_mns < 0):
-            raise ValueError("Decoding error")
+            raise DecodingError("Failed to find partial sequence in MNS.")
 
         # As _integrate_roll is expensive, decode_section should be called rarely.
         sx = self._integrate_roll(loc[0], first_roll=0)
@@ -152,14 +163,14 @@ class AnotoCodec:
         )
 
         if (locs < 0).any():
-            raise ValueError("Decoding error")
+            raise DecodingError("Failed to find at least one partial sequence in MNS")
 
         # Compute the 5 differences modulo the length of MNS
         deltae = np.remainder(locs[1:] - locs[:-1], self.mns_length)
         if not np.logical_and(
             deltae >= self.delta_range[0], deltae <= self.delta_range[1]
         ).all():
-            raise ValueError("Decoding error")
+            raise DecodingError("At least one delta value is not within required range")
 
         # Find 5 a1...a4 coefficients by integer division
         deltae -= self.delta_range[0]
