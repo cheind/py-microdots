@@ -18,12 +18,14 @@ class AnotoCodec:
         sns: list[list[int]],
         pfactors: list[int],
         delta_range: tuple[int, int],
+        mns_order_rotation: int = -1,
     ) -> None:
         self.mns = np.asarray(mns, dtype=np.int8)
         self.mns_length = len(self.mns)
         self.mns_cyclic = _make_cyclic(mns, order=mns_order)
         self.mns_cyclic_bytes = self.mns_cyclic.tobytes()
         self.mns_order = mns_order
+        self.mns_order_rotation = mns_order_rotation
         self.sns_order = mns_order - 1  # number of delta
         self.sns = [np.asarray(s, dtype=np.int8) for s in sns]
         self.sns_lengths = [len(s) for s in self.sns]
@@ -89,6 +91,36 @@ class AnotoCodec:
         delta = self.num_basis.reconstruct(coeffs[None, :])[0] + self.delta_range[0]
         return delta
 
+    # def decode_rotation(self, bits: np.ndarray) -> int:
+    #     """Determines number of 90° rots to bring the bitmatrix into a canonical
+    #     orientation."""
+    #     if self.mns_order_rotation < 0:
+    #         raise DecodingError("Rotation decoding not supported.")
+
+    #     bits = np.asarray(bits)
+    #     self._assert_bitmatrix_shape(bits, min_size=self.mns_order_rotation)
+    #     # in case a bigger matrix is given
+    #     bits = bits[: self.mns_order_rotation, : self.mns_order_rotation].astype(
+    #         np.int8
+    #     )
+    #     votes = []
+    #     for k in range(4):
+    #         rot_bits = np.rot90(bits, k=k, axes=(0, 1))
+    #         locx = np.array(
+    #             [self.mns_cyclic_bytes.find(s.tobytes()) for s in rot_bits[..., 0].T],
+    #             dtype=np.int32,
+    #         )
+    #         locy = np.array(
+    #             [self.mns_cyclic_bytes.find(s.tobytes()) for s in rot_bits[..., 1]],
+    #             dtype=np.int32,
+    #         )
+    #         all_locs = np.concatenate((locx, locy))
+    #         votes.append((all_locs > 0).sum())
+
+    #     print(votes)
+
+    #     return np.argmax(votes)
+
     def decode_location(self, bits: np.ndarray) -> tuple[int, int]:
         """Decodes the (N,M,2) bitmatrix into a 2D location.
 
@@ -112,12 +144,17 @@ class AnotoCodec:
 
         return (x, y)
 
-    def _assert_bitmatrix_shape(self, bits: np.ndarray):
+    def _assert_bitmatrix_shape(self, bits: np.ndarray, min_size: int = None):
         if bits.ndim != 3:
             raise DecodingError(f"Excepted a (M,N,2) matrix, but got {bits.shape}")
         N, M, C = bits.shape
-        if N < self.mns_order or M < self.mns_order or C != 2:
-            raise DecodingError(f"Excepted a (M,N,2) matrix, but got {bits.shape}")
+        if min_size is None:
+            min_size = self.mns_order
+        if N < min_size or M < min_size or C != 2:
+            raise DecodingError(
+                f"Excepted at least a matrix of size ({min_size},{min_size},2) matrix,"
+                f" but got {bits.shape}"
+            )
 
     def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
         bits = np.asarray(bits)

@@ -58,3 +58,25 @@ def test_bitmatrix_decode_fail_origa4():
     xy = anoto.decode_location(m[0:, 217:])
     assert xy != (217, 0)
     assert xy == (139779713, 0)
+
+
+# def test_bitmatrix_decode_orientation():
+#     anoto = defaults.anoto_6x6_a4_fixed
+
+#     m = anoto.encode_bitmatrix((256, 256), section=(5, 10))
+
+#     # for y in range(256 - 8):
+#     #     for x in range(256 - 8):
+#     #         s = m[y : y + 8, x : x + 8]
+#     #         for k in range(4):
+#     #             r = np.rot90(s, k=k, axes=(0, 1))
+#     #             kfix = anoto.decode_rotation(r)
+#     #             if k != ((4 - kfix) % 4):
+#     #                 print(y, x, k)
+#     #             assert k == ((4 - kfix) % 4)
+
+#     s = m[34 : 34 + 8, 79 : 79 + 8]
+#     r = np.rot90(s, k=1, axes=(0, 1))
+#     kfix = anoto.decode_rotation(r)
+#     print(kfix)
+#     # assert k == ((4 - kfix) % 4)
