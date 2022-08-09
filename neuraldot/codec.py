@@ -117,8 +117,8 @@ class AnotoCodec:
     def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
         assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
         bits = bits.astype(np.int8)
-        px_mns = self.mns_cyclic_bytes.find(bits[: self.mns_order + 1, 0, 0].tobytes())
-        py_mns = self.mns_cyclic_bytes.find(bits[0, : self.mns_order + 1, 1].tobytes())
+        px_mns = self.mns_cyclic_bytes.find(bits[: self.mns_order, 0, 0].tobytes())
+        py_mns = self.mns_cyclic_bytes.find(bits[0, : self.mns_order, 1].tobytes())
 
         if (px_mns < 0) or (py_mns < 0):
             raise ValueError("Decoding error")
