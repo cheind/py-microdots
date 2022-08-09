@@ -47,7 +47,6 @@ class AnotoCodec:
         ytiles = mshape[0] // self.mns_length
         for x in range(mshape[1]):
             roll = self._next_roll(x, roll)
-            print(x, roll, self._integrate_roll(x, section[0] % self.mns_length))
             s = np.roll(self.mns, -roll)
             m[:, x, 0] = np.tile(s, ytiles)
 
@@ -89,32 +88,7 @@ class AnotoCodec:
         delta = self.num_basis.reconstruct(coeffs[None, :])[0] + self.delta_range[0]
         return delta
 
-    def _compute_mns_roll(self, pos: int, prev_roll: int) -> int:
-        if pos == 0:
-            return prev_roll
-
-        # To find the roll of MNS for pos, we need to determine
-        # the delta corresponding to [pos-1,pos]
-        delta = self._compute_deltae(pos - 1)[0]
-        return (prev_roll + delta.item()) % self.mns_length
-
-    def _compute_deltae(self, pos: int) -> np.ndarray:
-        """Computes 5 delta values between [pos,pos+5]."""
-
-        # Compute the remainders for each of the secondary number
-        # sequences. Each remainder is the position in the
-        # corresponding secondary sequence.
-        rs = np.remainder(pos, self.sns_lengths)
-
-        # Extract the coefficients
-        coeffs = np.array(
-            [s[r : r + self.sns_order] for s, r in zip(self.sns_cyclic, rs)],
-            dtype=np.int8,
-        )  # (num_sns, num_coeff)
-        deltae = self.num_basis.reconstruct(coeffs.T) + self.delta_range[0]
-        return deltae
-
-    def decode_bitmatrix(
+    def decode_location(
         self, bits: np.ndarray
     ) -> tuple[tuple[int, int], tuple[int, int]]:
         """Decodes the (N,M,2) bitmatrix into position and section info.
@@ -133,18 +107,31 @@ class AnotoCodec:
         ]  # in case a bigger matrix is given
         bits = bits.astype(np.int8)
 
-        x, xloc_mns = self._decode_bitmatrix_direction(bits[..., 0].T)
-        y, yloc_mns = self._decode_bitmatrix_direction(bits[..., 1])
+        x = self._decode_location_along_direction(bits[..., 0].T)
+        y = self._decode_location_along_direction(bits[..., 1])
 
         xy = (x, y)
-        sec = (
-            (xloc_mns - y) % self.mns_length,
-            (yloc_mns - x) % self.mns_length,
-        )
 
         return xy
 
-    def _decode_bitmatrix_direction(self, bits: np.ndarray) -> tuple[int, int]:
+    def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
+        assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
+        bits = bits.astype(np.int8)
+        px_mns = self.mns_cyclic_bytes.find(bits[: self.mns_order + 1, 0, 0].tobytes())
+        py_mns = self.mns_cyclic_bytes.find(bits[0, : self.mns_order + 1, 1].tobytes())
+
+        if (px_mns < 0) or (py_mns < 0):
+            raise ValueError("Decoding error")
+
+        sx = self._integrate_roll(loc[0], first_roll=0)
+        sy = self._integrate_roll(loc[1], first_roll=0)
+
+        return (
+            (px_mns - loc[1] - sx) % self.mns_length,
+            (py_mns - loc[0] - sy) % self.mns_length,
+        )
+
+    def _decode_location_along_direction(self, bits: np.ndarray) -> int:
         """Decodes the position along a single direction.
 
         It is assumed that the MNS is along rows. So, if you decode the x-direction
@@ -188,4 +175,4 @@ class AnotoCodec:
         ps = [s.find(a.tobytes()) for s, a in zip(self.sns_cyclic_bytes, coeffs.T)]
 
         p = self.crt.solve(ps)
-        return p, locs[0]
+        return p

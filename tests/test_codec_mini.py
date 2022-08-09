@@ -25,5 +25,5 @@ def test_bitmatrix_decode_mini(size, section):
 
     for y in range(size - 6):
         for x in range(size - 6):
-            xy = anoto.decode_bitmatrix(m[y : y + 6, x : x + 6])
+            xy = anoto.decode_location(m[y : y + 6, x : x + 6])
             assert xy == (x, y)
