@@ -70,9 +70,9 @@ def draw_dots(
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from .defaults import anoto_encoder_6x6_a4_fixed
+    from .defaults import anoto_6x6
 
-    bits = anoto_encoder_6x6_a4_fixed.encode_bitmatrix((10, 10), section=(0, 0))
+    bits = anoto_6x6.encode_bitmatrix((10, 10), section=(0, 0))
     print(bits[:3, :3])
 
     fig, ax = plt.subplots()
