@@ -123,6 +123,7 @@ class AnotoCodec:
         if (px_mns < 0) or (py_mns < 0):
             raise ValueError("Decoding error")
 
+        # As _integrate_roll is expensive, decode_section should be called rarely.
         sx = self._integrate_roll(loc[0], first_roll=0)
         sy = self._integrate_roll(loc[1], first_roll=0)
 
