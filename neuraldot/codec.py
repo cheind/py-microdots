@@ -88,18 +88,18 @@ class AnotoCodec:
         delta = self.num_basis.reconstruct(coeffs[None, :])[0] + self.delta_range[0]
         return delta
 
-    def decode_location(
-        self, bits: np.ndarray
-    ) -> tuple[tuple[int, int], tuple[int, int]]:
-        """Decodes the (N,M,2) bitmatrix into position and section info.
+    def decode_location(self, bits: np.ndarray) -> tuple[int, int]:
+        """Decodes the (N,M,2) bitmatrix into a 2D location.
+
+        The location is with respect to the section tile. The section tiling info
+        can be computed afterwards using decode_section.
 
         Params:
             bits: (N,M,2) matrix of bits. N,M need to be greater than or
                 equal to order of MNS.
 
         Returns:
-            loc: 2D (x,y) location with the section.
-            sec: (x,y) section tile information.
+            loc: 2D (x,y) location wrt to section coordinate system
         """
         assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
         bits = bits[
@@ -110,9 +110,7 @@ class AnotoCodec:
         x = self._decode_location_along_direction(bits[..., 0].T)
         y = self._decode_location_along_direction(bits[..., 1])
 
-        xy = (x, y)
-
-        return xy
+        return (x, y)
 
     def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
         assert bits.shape[0] >= self.mns_order and bits.shape[1] >= self.mns_order
@@ -145,9 +143,7 @@ class AnotoCodec:
                 before passing it to this method.
 
         Returns:
-            pos: position along the direction
-            mns_loc: index of the first partial sequence of bits in the MNS. This
-                value can be used to decode the section at a later state.
+            pos: position along the direction up to an unknown section tile.
         """
 
         # Compute the mns_order locations in the MNS via byte matching
