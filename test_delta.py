@@ -1,14 +1,13 @@
-# import numpy as np
-# import pytest
+import numpy as np
+import pytest
 
-# from neuraldot import defaults
-
-
-# def test_bitmatrix_decode():
-#     enc = defaults.anoto_encoder_6x6_a4_fixed
-#     dec = defaults.anoto_decoder_6x6_a4_fixed
-
-#     m = enc.encode_bitmatrix((6, 20), section=(0, 0))
+from neuraldot import defaults
 
 
-# test_bitmatrix_decode()
+def test_bitmatrix_decode():
+    codec = defaults.anoto_6x6_a4_fixed
+
+    m = codec.encode_bitmatrix((6, 20), section=(0, 0))
+
+
+test_bitmatrix_decode()

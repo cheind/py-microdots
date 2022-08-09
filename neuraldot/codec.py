@@ -46,7 +46,8 @@ class AnotoCodec:
         roll = section[0] % self.mns_length
         ytiles = mshape[0] // self.mns_length
         for x in range(mshape[1]):
-            roll = self._compute_mns_roll(x, roll)
+            roll = self._next_roll(x, roll)
+            print(x, roll, self._integrate_roll(x, section[0] % self.mns_length))
             s = np.roll(self.mns, -roll)
             m[:, x, 0] = np.tile(s, ytiles)
 
@@ -54,11 +55,39 @@ class AnotoCodec:
         roll = section[1] % self.mns_length
         xtiles = mshape[1] // self.mns_length
         for y in range(mshape[0]):
-            roll = self._compute_mns_roll(y, roll)
+            roll = self._next_roll(y, roll)
             s = np.roll(self.mns, -roll)
             m[y, :, 1] = np.tile(s, xtiles)
 
         return m[: shape[0], : shape[1]]
+
+    def _next_roll(self, pos: int, prev_roll: int) -> int:
+        if pos == 0:
+            return prev_roll
+
+        # To find the roll of MNS for pos, we need to determine
+        # the delta corresponding to [pos-1,pos]
+        return (prev_roll + self._delta(pos - 1)) % self.mns_length
+
+    def _integrate_roll(self, pos: int, first_roll: int) -> int:
+        r = 0
+        for i in range(0, pos):
+            r += self._delta(i)
+        return (first_roll + r) % self.mns_length
+
+    def _delta(self, pos: int):
+        # Compute the remainders for each of the secondary number
+        # sequences. Each remainder is the position in the
+        # corresponding secondary sequence.
+        rs = np.remainder(pos, self.sns_lengths)
+
+        # Extract the coefficients
+        coeffs = np.array(
+            [s[r] for s, r in zip(self.sns_cyclic, rs)],
+            dtype=np.int8,
+        )
+        delta = self.num_basis.reconstruct(coeffs[None, :])[0] + self.delta_range[0]
+        return delta
 
     def _compute_mns_roll(self, pos: int, prev_roll: int) -> int:
         if pos == 0:
