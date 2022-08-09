@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 
 from neuraldot import codec, mini_sequences
