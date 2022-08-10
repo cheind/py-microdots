@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as P
-from neuraldot.defaults import anoto_6x6_a4_fixed
+from neuraldot.defaults import anoto_6x6_a4_fixed, anoto_6x6
 from neuraldot.draw import draw_dots
 
 
 def generate_pattern_plot():
-    bits = anoto_6x6_a4_fixed.encode_bitmatrix((8, 16), section=(0, 0))
+    bits = anoto_6x6.encode_bitmatrix((8, 16), section=(0, 0))
     fig, ax = plt.subplots(figsize=plt.figaspect(8 / 16))
 
     draw_dots(bits, dot_scale=25, ax=ax)
