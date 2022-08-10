@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from neuraldot import defaults
+from neuraldot import defaults, codec
 
 
 def test_bitmatrix_encode_different_sections():
@@ -58,6 +58,18 @@ def test_bitmatrix_decode_fail_origa4():
     xy = anoto.decode_location(m[0:, 217:])
     assert xy != (217, 0)
     assert xy == (139779713, 0)
+
+
+def test_bit_packing():
+
+    nums = np.arange(4).astype(np.uint8)
+    bits = codec.num_to_bits(nums)
+    assert np.allclose(bits, [[0, 0], [1, 0], [0, 1], [1, 1]])
+
+    bits = np.random.randint(0, 2, size=(10, 10, 2))
+    nums = codec.bits_to_num(bits)
+    rbits = codec.num_to_bits(nums)
+    assert np.allclose(bits, rbits)
 
 
 # def test_bitmatrix_decode_orientation():

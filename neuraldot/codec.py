@@ -221,3 +221,19 @@ class AnotoCodec:
 
         p = self.crt.solve(ps)
         return p
+
+
+def bits_to_num(bitmatrix: np.ndarray) -> np.ndarray:
+    # Little order: x is lowest bit, y is highes bit => 10 = 2 means x=0,y=1
+    # x,y,num, dir,
+    # 0,0, 0, north
+    # 1,0, 1, west
+    # 0,1, 2, east
+    # 1,1, 3, south
+    return np.packbits(bitmatrix, axis=-1, bitorder="little").squeeze(-1)
+
+
+def num_to_bits(num_matrix: np.ndarray) -> np.ndarray:
+    return np.unpackbits(
+        np.expand_dims(num_matrix, -1), axis=-1, count=2, bitorder="little"
+    )
