@@ -72,6 +72,19 @@ def test_bit_packing():
     assert np.allclose(bits, rbits)
 
 
+def vote_axes(anoto, mat):
+    xcol_correct = 0
+    yrow_correct = 0
+
+    for i in range(8):
+        xcol = anoto.mns_cyclic_bytes.find(mat[:, i, 0].tobytes())
+        yrow = anoto.mns_cyclic_bytes.find(mat[i, :, 1].tobytes())
+        xcol_correct += 1 if xcol >= 0 else 0
+        yrow_correct += 1 if yrow >= 0 else 0
+
+    return xcol_correct >= 4 and yrow_correct >= 4
+
+
 def test_bitmatrix_decode_orientation():
     anoto = defaults.anoto_6x6_a4_fixed
     m = anoto.encode_bitmatrix((256, 256), section=(5, 10))
@@ -87,63 +100,14 @@ def test_bitmatrix_decode_orientation():
     for i in range(256 - 8):
         for j in range(256 - 8):
             s = m[i : i + 8, j : j + 8].copy()
-            print(i, j)
-
-            xrow, yrow, xcol, ycol = search_seqs(s)
-            print(xrow, yrow, xcol, ycol)
-            assert yrow >= 0 and xcol >= 0
+            # print(i, j)
+            assert vote_axes(anoto, s)
 
             s = helpers.rot90_cw(s)
-            xrow, yrow, xcol, ycol = search_seqs(s)
-            print(xrow, yrow, xcol, ycol)
-            assert yrow == -1 and xcol >= 0
+            assert not vote_axes(anoto, s)
 
             s = helpers.rot90_cw(s)
-            xrow, yrow, xcol, ycol = search_seqs(s)
-            print(xrow, yrow, xcol, ycol)
-            assert yrow == -1 and xcol == -1
+            assert not vote_axes(anoto, s)
 
-            print("-----")
             s = helpers.rot90_cw(s)
-            xrow, yrow, xcol, ycol = search_seqs(s)
-            print(xrow, yrow, xcol, ycol)
-            xrow, yrow, xcol, ycol = search_seqs(s, 1)
-            print(xrow, yrow, xcol, ycol)
-            xrow, yrow, xcol, ycol = search_seqs(s, 2)
-            print(xrow, yrow, xcol, ycol)
-            xrow, yrow, xcol, ycol = search_seqs(s, 3)
-            print(xrow, yrow, xcol, ycol)
-            assert yrow >= 0 and xcol == -1
-
-    # mat = helpers.rot90_cw(s)
-    # t = mat[:8, :8]
-    # print_search(t, 90)
-
-    # mr = helpers.rot90_cw(mr)
-    # t = mr[:8, :8]
-    # print_search(t, 180)
-
-    # mr = helpers.rot90_cw(mr)
-    # t = mr[:8, :8]
-    # print_search(t, 270)
-
-    # print(s[:, 0, 0], t[:, 0, 0])
-    # print(s[:, 0, 1], t[:, 0, 1])
-    # print(s[0, :, 0], t[0, :, 0])
-    # print(s[0, :, 1], t[0, :, 1])
-
-    # for y in range(256 - 8):
-    #     for x in range(256 - 8):
-    #         s = m[y : y + 8, x : x + 8]
-    #         for k in range(4):
-    #             r = np.rot90(s, k=k, axes=(0, 1))
-    #             kfix = anoto.decode_rotation(r)
-    #             if k != ((4 - kfix) % 4):
-    #                 print(y, x, k)
-    #             assert k == ((4 - kfix) % 4)
-
-    # s = m[34 : 34 + 8, 79 : 79 + 8]
-    # r = np.rot90(s, k=1, axes=(0, 1))
-    # kfix = anoto.decode_rotation(r)
-    # print(kfix)
-    # assert k == ((4 - kfix) % 4)
+            assert not vote_axes(anoto, s)
