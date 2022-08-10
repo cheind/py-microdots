@@ -37,8 +37,8 @@ def draw_dots(
         offset_lut = np.array(
             [
                 [0, -1.0],  # 0: north
-                [1.0, 0.0],  # 1: east
-                [-1.0, 0.0],  # 2: west
+                [-1.0, 0.0],  # 1: east
+                [1.0, 0.0],  # 2: west
                 [0.0, 1.0],  # 3: south
             ]
         )
