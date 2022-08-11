@@ -16,12 +16,64 @@ def test_bit_packing():
     assert np.allclose(bits, rbits)
 
 
-def test_rot90_cw():
+def test_rot90_identity():
+
     bits = np.random.randint(0, 2, size=(12, 12, 2))
-    b = bits
-    for i in range(4):
-        b = helpers.rot90_cw(b)
-    assert np.allclose(bits, b)
+    rbits = helpers.rot90(bits, k=4)
+    assert np.allclose(bits, rbits)
+
+    rbits = helpers.rot90(bits, k=-4)
+    assert np.allclose(bits, rbits)
+
+    rbits = helpers.rot90(bits, k=0)
+    assert np.allclose(bits, rbits)
+
+
+def test_rot90():
+    # NW
+    # ES
+    nums = np.array([[0, 1], [2, 3]], dtype=np.uint8)
+    bits = helpers.num_to_bits(nums)
+
+    # 90° ccw
+    # array becomes
+    # WS
+    # NE
+    # bits become
+    # SE
+    # WN
+    r = helpers.rot90(bits, k=1)
+    assert np.allclose(helpers.bits_to_num(r), [[3, 2], [1, 0]])
+
+    # 90° cw
+    # array becomes
+    # EN
+    # SW
+    # bits become
+    # SE
+    # WN
+    r = helpers.rot90(bits, k=-1)
+    assert np.allclose(helpers.bits_to_num(r), [[3, 2], [1, 0]])
+
+    # 180° ccw/cw
+    # array becomes
+    # SE
+    # WN
+    # bits become
+    # NW
+    # ES
+    r = helpers.rot90(bits, k=2)
+    assert np.allclose(helpers.bits_to_num(r), [[0, 1], [2, 3]])
+    r = helpers.rot90(bits, k=-2)
+    assert np.allclose(helpers.bits_to_num(r), [[0, 1], [2, 3]])
+
+    # 270° ccw/cw
+    r = helpers.rot90(bits, k=3)
+    ri = helpers.rot90(bits, k=-1)
+    assert np.allclose(r, ri)
+    r = helpers.rot90(bits, k=-1)
+    ri = helpers.rot90(bits, k=3)
+    assert np.allclose(r, ri)
 
 
 # def test_bitmatrix_decode_orientation():

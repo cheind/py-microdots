@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 
 
@@ -17,17 +18,32 @@ def num_to_bits(num_matrix: np.ndarray) -> np.ndarray:
     )
 
 
-def rot90_cw(bitmatrix: np.ndarray) -> np.ndarray:
-    """Simulates a 90° clockwise rotation of the bitmatrix."""
+"""Maps from displacement direction d to canonical direction c.
+For example index d=1 ('west') -> c=3."""
+NUM2DIR = [0, 3, 1, 2]
+
+"""Reverse of NUM2DIR."""
+DIR2NUM = [0, 2, 3, 1]
+
+
+def rot90(
+    bitmatrix: np.ndarray,
+    k: int = 1,
+) -> np.ndarray:
+    """Simulates 90° rotation of the bitmatrix applied k-times.
+
+    When k is positive applies a counterclockwise rotation,
+    else clockwise.
+    """
     m = bits_to_num(bitmatrix)
     # 1. Rotate array
-    m = np.rot90(m, k=1, axes=(1, 0))
-    # 2. Change bits: a north displacement, will turn to an east etc.
-    dir_map = [2, 0, 3, 1]
+    m = np.rot90(m, k=k, axes=(0, 1))
 
-    def map_num(x):
-        return dir_map[x]
+    # 2. Change bits: under rotation, bits will be decoded differently
+    def rot_num(x):
+        d = (NUM2DIR[x] - k) % 4
+        return DIR2NUM[d]
 
-    m = np.vectorize(map_num)(m)
+    m = np.vectorize(rot_num)(m)
     # 3. Convert back to bits
     return num_to_bits(m.astype(np.uint8))
