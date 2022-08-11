@@ -100,9 +100,13 @@ class AnotoCodec:
         is canonical. A value of 1 means that the pattern is rotated by
         90° in ccw orientation and a helpers.rot90(bits, k=-1) can bring
         it into canonical orientation.
+
+        For this to work, usually larger bitmatrices than for decoding
+        the location are required. For the default Anoto 6x6 pattern,
+        8x8 matrices have to be used.
         """
 
-        # Square matrix
+        # Make matrix square
         M = min(bits.shape[0], bits.shape[1])
         bits = bits[:M, :M].astype(np.int8)
 
