@@ -60,54 +60,21 @@ def test_bitmatrix_decode_fail_origa4():
     assert xy == (139779713, 0)
 
 
-def test_bit_packing():
-
-    nums = np.arange(4).astype(np.uint8)
-    bits = codec.num_to_bits(nums)
-    assert np.allclose(bits, [[0, 0], [1, 0], [0, 1], [1, 1]])
-
-    bits = np.random.randint(0, 2, size=(10, 10, 2))
-    nums = codec.bits_to_num(bits)
-    rbits = codec.num_to_bits(nums)
-    assert np.allclose(bits, rbits)
-
-
-def vote_axes(anoto, mat):
-    xcol_correct = 0
-    yrow_correct = 0
-
-    for i in range(8):
-        xcol = anoto.mns_cyclic_bytes.find(mat[:, i, 0].tobytes())
-        yrow = anoto.mns_cyclic_bytes.find(mat[i, :, 1].tobytes())
-        xcol_correct += 1 if xcol >= 0 else 0
-        yrow_correct += 1 if yrow >= 0 else 0
-
-    return xcol_correct >= 4 and yrow_correct >= 4
-
-
-def test_bitmatrix_decode_orientation():
+def test_bitmatrix_decode_rotation():
     anoto = defaults.anoto_6x6_a4_fixed
     m = anoto.encode_bitmatrix((256, 256), section=(5, 10))
 
-    def search_seqs(mat, idx=0):
-        mat = mat.astype(np.int8)
-        xcol = anoto.mns_cyclic_bytes.find(mat[:, idx, 0].tobytes())
-        ycol = anoto.mns_cyclic_bytes.find(mat[:, idx, 1].tobytes())
-        xrow = anoto.mns_cyclic_bytes.find(mat[idx, :, 0].tobytes())
-        yrow = anoto.mns_cyclic_bytes.find(mat[idx, :, 1].tobytes())
-        return xrow, yrow, xcol, ycol
-
-    for i in range(256 - 8):
-        for j in range(256 - 8):
+    for i in range(128 - 8):
+        for j in range(128 - 8):
             s = m[i : i + 8, j : j + 8].copy()
-            # print(i, j)
-            assert vote_axes(anoto, s)
 
-            s = helpers.rot90_cw(s)
-            assert not vote_axes(anoto, s)
+            assert anoto.decode_rotation(s) == 0
 
-            s = helpers.rot90_cw(s)
-            assert not vote_axes(anoto, s)
+            r = helpers.rot90(s, k=1)
+            assert anoto.decode_rotation(r) == 1
 
-            s = helpers.rot90_cw(s)
-            assert not vote_axes(anoto, s)
+            r = helpers.rot90(s, k=2)
+            assert anoto.decode_rotation(r) == 2
+
+            r = helpers.rot90(s, k=3)
+            assert anoto.decode_rotation(r) == 3

@@ -1,4 +1,7 @@
+from tabnanny import check
 import numpy as np
+
+from neuraldot import helpers
 
 from . import integer
 from .exceptions import DecodingError
@@ -18,14 +21,12 @@ class AnotoCodec:
         sns: list[list[int]],
         pfactors: list[int],
         delta_range: tuple[int, int],
-        mns_order_rotation: int = -1,
     ) -> None:
         self.mns = np.asarray(mns, dtype=np.int8)
         self.mns_length = len(self.mns)
         self.mns_cyclic = _make_cyclic(mns, order=mns_order)
         self.mns_cyclic_bytes = self.mns_cyclic.tobytes()
         self.mns_order = mns_order
-        self.mns_order_rotation = mns_order_rotation
         self.sns_order = mns_order - 1  # number of delta
         self.sns = [np.asarray(s, dtype=np.int8) for s in sns]
         self.sns_lengths = [len(s) for s in self.sns]
@@ -91,35 +92,41 @@ class AnotoCodec:
         delta = self.num_basis.reconstruct(coeffs[None, :])[0] + self.delta_range[0]
         return delta
 
-    # def decode_rotation(self, bits: np.ndarray) -> int:
-    #     """Determines number of 90° rots to bring the bitmatrix into a canonical
-    #     orientation."""
-    #     if self.mns_order_rotation < 0:
-    #         raise DecodingError("Rotation decoding not supported.")
+    def decode_rotation(self, bits: np.ndarray) -> int:
+        """Determines the rotation of pattern in 90° steps (ccw).
 
-    #     bits = np.asarray(bits)
-    #     self._assert_bitmatrix_shape(bits, min_size=self.mns_order_rotation)
-    #     # in case a bigger matrix is given
-    #     bits = bits[: self.mns_order_rotation, : self.mns_order_rotation].astype(
-    #         np.int8
-    #     )
-    #     votes = []
-    #     for k in range(4):
-    #         rot_bits = np.rot90(bits, k=k, axes=(0, 1))
-    #         locx = np.array(
-    #             [self.mns_cyclic_bytes.find(s.tobytes()) for s in rot_bits[..., 0].T],
-    #             dtype=np.int32,
-    #         )
-    #         locy = np.array(
-    #             [self.mns_cyclic_bytes.find(s.tobytes()) for s in rot_bits[..., 1]],
-    #             dtype=np.int32,
-    #         )
-    #         all_locs = np.concatenate((locx, locy))
-    #         votes.append((all_locs > 0).sum())
+        This method can help to determine the rotation of the pattern
+        in 90° steps. A value of 0 indicates that the pattern orientation
+        is canonical. A value of 1 means that the pattern is rotated by
+        90° in ccw orientation and a helpers.rot90(bits, k=-1) can bring
+        it into canonical orientation.
+        """
 
-    #     print(votes)
+        # Square matrix
+        M = min(bits.shape[0], bits.shape[1])
+        bits = bits[:M, :M].astype(np.int8)
 
-    #     return np.argmax(votes)
+        # Test each of the four possible ccw rotations by attempting
+        # to locate partial sequences in the MNS
+        def check_rot(rotbits):
+            M = rotbits.shape[0]
+            xcol_correct = 0
+            yrow_correct = 0
+
+            for i in range(M):
+                xcol = self.mns_cyclic_bytes.find(rotbits[:, i, 0].tobytes())
+                yrow = self.mns_cyclic_bytes.find(rotbits[i, :, 1].tobytes())
+                xcol_correct += 1 if xcol >= 0 else 0
+                yrow_correct += 1 if yrow >= 0 else 0
+
+            return xcol_correct >= M // 2 and yrow_correct >= M // 2
+
+        for k in range(4):
+            rotbits = helpers.rot90(bits, k=k)
+            if check_rot(rotbits):
+                return (4 - k) % 4
+
+        raise DecodingError("Failed to determine pattern orientation.")
 
     def decode_location(self, bits: np.ndarray) -> tuple[int, int]:
         """Decodes the (N,M,2) bitmatrix into a 2D location.
@@ -221,19 +228,3 @@ class AnotoCodec:
 
         p = self.crt.solve(ps)
         return p
-
-
-def bits_to_num(bitmatrix: np.ndarray) -> np.ndarray:
-    # Little order: x is lowest bit, y is highes bit => 10 = 2 means x=0,y=1
-    # x,y,num, dir,
-    # 0,0, 0, north
-    # 1,0, 1, west
-    # 0,1, 2, east
-    # 1,1, 3, south
-    return np.packbits(bitmatrix, axis=-1, bitorder="little").squeeze(-1)
-
-
-def num_to_bits(num_matrix: np.ndarray) -> np.ndarray:
-    return np.unpackbits(
-        np.expand_dims(num_matrix, -1), axis=-1, count=2, bitorder="little"
-    )

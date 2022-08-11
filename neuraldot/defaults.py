@@ -8,7 +8,6 @@ anoto_6x6 = AnotoCodec(
     sns=(A1, A2, A3, A4),
     pfactors=[3, 3, 2, 3],
     delta_range=(5, 58),
-    mns_order_rotation=8,
 )
 
 
@@ -18,5 +17,4 @@ anoto_6x6_a4_fixed = AnotoCodec(
     sns=(A1, A2, A3, A4_alt),
     pfactors=[3, 3, 2, 3],
     delta_range=(5, 58),
-    mns_order_rotation=8,
 )
