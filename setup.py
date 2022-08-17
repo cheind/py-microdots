@@ -10,7 +10,7 @@ def read_requirements(fname):
 
 
 core_required = read_requirements("requirements.txt")
-dev_required = read_requirements("dev-requirements.txt")
+dev_required = read_requirements("dev-requirements.txt") + core_required
 
 main_ns = {}
 with open(THISDIR / "microdots" / "__version__.py") as ver_file:
