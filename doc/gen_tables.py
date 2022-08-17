@@ -30,5 +30,16 @@ def generate_tuples_relative_prime():
     print(df.to_latex(escape=False))
 
 
+def generate_symbol_lookup_table():
+    data = {}
+    data["Symbol"] = ["N(orth)", "E(ast)", "S(outh)", "W(est)"]
+    data["$x$"] = [0, 0, 1, 1]
+    data["$y$"] = [0, 1, 1, 0]
+
+    df = pd.DataFrame(data)
+    print(df.to_latex(escape=False))
+
+
 generate_numbers_pfactor_basis()
 generate_tuples_relative_prime()
+generate_symbol_lookup_table()
