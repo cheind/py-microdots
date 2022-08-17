@@ -54,7 +54,6 @@ def draw_dots(
         ),
         -1,
     )
-    print(bitmatrix.shape)
     dots = dots + offsets
     ax.scatter(dots[..., 0], dots[..., 1], s=dot_scale, marker="o", color="k", zorder=2)
 
