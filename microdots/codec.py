@@ -1,4 +1,3 @@
-from tabnanny import check
 import numpy as np
 
 from microdots import helpers
@@ -14,6 +13,21 @@ def _make_cyclic(seq: np.ndarray, order: int) -> np.ndarray:
 
 
 class AnotoCodec:
+    """A generalized implementation of the Anoto coding.
+
+    An instance of this class supports encoding and decoding
+    of Anoto patterns. In particular, given a bit-matrix of
+    shape (M,M,2) the provided methods decode a) the position
+    coordindate (x,y), b) the section coordindates (u,v) and
+    the pattern orientation as explained in [1]. When encoding,
+    the class generates a bit-matrix (H,W,2) for a specific
+    section.
+
+    References:
+        [1] Christoph Heindl, 'py-microdots and the Anoto Codec',
+        2022
+    """
+
     def __init__(
         self,
         mns: list[int],
@@ -22,6 +36,19 @@ class AnotoCodec:
         pfactors: list[int],
         delta_range: tuple[int, int],
     ) -> None:
+        """Initialize the Anoto codec.
+
+        Params
+            mns: a binary quasi de Bruijn sequence QB(2,n,m) of order n and
+                length m that acts as the main number sequence (MNS).
+            mns_order: the order or the MNS.
+            sns: a list of secondary number sequences which are also
+                quasi de Bruijn sequences or order n-1. The lengths
+                of these sequences should be relatively prime.
+            delta_range: a range possible difference values.
+            pfactors: the sequence of prime factors to decompose
+                difference values into.
+        """
         self.mns = np.asarray(mns, dtype=np.int8)
         self.mns_length = len(self.mns)
         self.mns_cyclic = _make_cyclic(mns, order=mns_order)
@@ -39,7 +66,15 @@ class AnotoCodec:
     def encode_bitmatrix(
         self, shape: tuple[int, int], section: tuple[int, int] = (0, 0)
     ) -> np.ndarray:
-        """Generates a NxMx2 bitmatrix encoding x,y positions."""
+        """Generates a (H,W,2) bitmatrix given section coordindates (u,v).
+
+        Params:
+            shape: (H,W) pattern shape
+            section: section coordinates to use
+
+        Returns
+            bits: (H,W,2) matrix of encoded position coordinates.
+        """
         # Find nearest multiples of MNS length for ease of generation
         mshape = (
             int(self.mns_length * np.ceil(shape[0] / self.mns_length)),
@@ -65,6 +100,8 @@ class AnotoCodec:
         return m[: shape[0], : shape[1]]
 
     def _next_roll(self, pos: int, prev_roll: int) -> int:
+        """Computes and returns the MNS offset for the next postion
+        given the previous offset."""
         if pos == 0:
             return prev_roll
 
@@ -73,12 +110,20 @@ class AnotoCodec:
         return (prev_roll + self._delta(pos - 1)) % self.mns_length
 
     def _integrate_roll(self, pos: int, first_roll: int) -> int:
+        """Computes the MNS offset for the given position
+        from offsets for zero position.
+
+        This method is of complexity O(pos) due to required
+        integration of all previous positions.
+        """
         r = 0
         for i in range(0, pos):
             r += self._delta(i)
         return (first_roll + r) % self.mns_length
 
     def _delta(self, pos: int):
+        """Computes the difference value between pos and pos+1."""
+
         # Compute the remainders for each of the secondary number
         # sequences. Each remainder is the position in the
         # corresponding secondary sequence.
@@ -95,7 +140,7 @@ class AnotoCodec:
     def decode_rotation(self, bits: np.ndarray) -> int:
         """Determines the rotation of pattern in 90° steps (ccw).
 
-        This method can help to determine the rotation of the pattern
+        This method helps to determine the rotation of the pattern
         in 90° steps. A value of 0 indicates that the pattern orientation
         is canonical. A value of 1 means that the pattern is rotated by
         90° in ccw orientation and a helpers.rot90(bits, k=-1) can bring
@@ -167,7 +212,16 @@ class AnotoCodec:
                 f" but got {bits.shape}"
             )
 
-    def decode_section(self, bits: np.ndarray, loc: tuple[int, int]) -> tuple[int, int]:
+    def decode_section(self, bits: np.ndarray, pos: tuple[int, int]) -> tuple[int, int]:
+        """Computes the section coordinates from an observed bits matrix.
+
+        Params:
+            bits: (M,M,2) matrix of observed bits
+            pos: position coordinates (x,y)
+
+        Returns:
+            coords: section coordinates (u,v)
+        """
         bits = np.asarray(bits)
         self._assert_bitmatrix_shape(bits)
         px_mns = self.mns_cyclic_bytes.find(
@@ -181,12 +235,12 @@ class AnotoCodec:
             raise DecodingError("Failed to find partial sequence in MNS.")
 
         # As _integrate_roll is expensive, decode_section should be called rarely.
-        sx = self._integrate_roll(loc[0], first_roll=0)
-        sy = self._integrate_roll(loc[1], first_roll=0)
+        sx = self._integrate_roll(pos[0], first_roll=0)
+        sy = self._integrate_roll(pos[1], first_roll=0)
 
         return (
-            (px_mns - loc[1] - sx) % self.mns_length,
-            (py_mns - loc[0] - sy) % self.mns_length,
+            (px_mns - pos[1] - sx) % self.mns_length,
+            (py_mns - pos[0] - sy) % self.mns_length,
         )
 
     def _decode_location_along_direction(self, bits: np.ndarray) -> int:
