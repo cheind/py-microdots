@@ -13,11 +13,11 @@ core_required = read_requirements("requirements.txt")
 dev_required = read_requirements("dev-requirements.txt")
 
 main_ns = {}
-with open(THISDIR / "sdftoolbox" / "__version__.py") as ver_file:
+with open(THISDIR / "microdots" / "__version__.py") as ver_file:
     exec(ver_file.read(), main_ns)
 
 setup(
-    name="sdftoolbox",
+    name="microdots",
     version=main_ns["__version__"],
     description="A modern Python library to encode/decode with Anoto dot patterns.",
     author="Christoph Heindl",
