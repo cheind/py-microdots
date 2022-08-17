@@ -16,7 +16,7 @@ The implementation is based on my research on this topic. A detailed report abou
 
 ## Features
 
-**py-microdots** comes with the following feature set
+**py-microdots** offers the following features
 
 -   Decoding of position coordinates, section coordinates and pattern rotations.
 -   Encoding support including section coordinates
