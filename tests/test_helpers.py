@@ -1,6 +1,6 @@
 import numpy as np
 
-from neuraldot import helpers
+from microdots import helpers
 
 
 def test_bit_packing():

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from neuraldot import defaults, codec, helpers
+from microdots import defaults, codec, helpers
 
 
 def test_bitmatrix_encode_different_sections():

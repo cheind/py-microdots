@@ -1,6 +1,6 @@
 import pytest
 
-from neuraldot import codec, mini_sequences
+from microdots import codec, mini_sequences
 
 
 @pytest.mark.parametrize(

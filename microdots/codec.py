@@ -1,7 +1,7 @@
 from tabnanny import check
 import numpy as np
 
-from neuraldot import helpers
+from microdots import helpers
 
 from . import integer
 from .exceptions import DecodingError

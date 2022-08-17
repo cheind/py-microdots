@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from neuraldot import integer
+from microdots import integer
 
 
 def generate_numbers_pfactor_basis():

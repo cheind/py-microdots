@@ -1,5 +1,5 @@
 import numpy as np
-from neuraldot.integer import NumberBasis, CRT
+from microdots.integer import NumberBasis, CRT
 
 
 def test_numberbasis():

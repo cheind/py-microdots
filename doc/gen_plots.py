@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as P
-from neuraldot.defaults import anoto_6x6_a4_fixed, anoto_6x6
-from neuraldot.draw import draw_dots
+from microdots.defaults import anoto_6x6_a4_fixed, anoto_6x6
+from microdots.draw import draw_dots
 
 
 def generate_pattern_plot():

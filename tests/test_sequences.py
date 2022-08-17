@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from neuraldot import anoto_sequences, mini_sequences
+from microdots import anoto_sequences, mini_sequences
 
 
 @pytest.mark.parametrize(
