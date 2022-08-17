@@ -19,7 +19,7 @@ with open(THISDIR / "microdots" / "__version__.py") as ver_file:
 setup(
     name="microdots",
     version=main_ns["__version__"],
-    description="A modern Python library to encode/decode with Anoto dot patterns.",
+    description="A modern Python library to work with Anoto dot patterns.",
     author="Christoph Heindl",
     url="https://github.com/cheind/py-microdots",
     license="MIT",
