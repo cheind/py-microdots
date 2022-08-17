@@ -2,7 +2,7 @@
 
 # py-microdots
 
-This repository provides a Python library named **py-microdots** for encoding and decoding 2D positions based on the [Anoto](https://www.anoto.com/cases/anoto-digital-pen/) dot pattern approach.
+This repository provides **py-microdots**, a Python library for encoding and decoding 2D locations based on the [Anoto](https://www.anoto.com/cases/anoto-digital-pen/) dot pattern approach.
 
 <div align="center">
 <img src="doc/anoto_pattern.svg" width="80%">
