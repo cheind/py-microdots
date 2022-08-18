@@ -23,7 +23,15 @@ The implementation is based on my research on this topic. A detailed report abou
 -   Drawing routines
 -   Generalized interface that supports tailored coding variants (e.g. 4x4 codes)
 
-**py-microdots** focuses on encoding and decoding of bit-matrices. That is, the library does not come with image processing to compute the offset direction of dots.
+## Scope
+
+The focus of this library is depicted best in a diagram shown below
+
+<div align="center">
+<img src="doc/pymicrodots-scope.png">
+</div>
+
+That is, **py-microdots** focuses on encoding and decoding of bit-matrices. That is, the library does not come with image processing to compute the offset direction of dots.
 
 ## Example
 
