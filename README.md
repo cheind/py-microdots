@@ -25,13 +25,13 @@ The implementation is based on my research on this topic. A detailed report abou
 
 ## Scope
 
-The focus of this library is depicted best in a diagram shown below
+The focus of this library is depicted in the following diagram
 
 <div align="center">
 <img src="doc/pymicrodots-scope.png">
 </div>
 
-That is, **py-microdots** focuses on encoding and decoding of bit-matrices. That is, the library does not come with image processing to compute the offset direction of dots.
+**py-microdots** focuses on encoding and decoding of bit-matrices and does not come with image processing or plotting capabilites.
 
 ## Example
 
