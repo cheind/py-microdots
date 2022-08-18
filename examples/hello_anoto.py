@@ -18,9 +18,13 @@ def main():
 
     # Decode a partial matrix
     S = G[3 : 3 + 6, 7 : 7 + 6]
+
     pos = codec.decode_position(S)
     sec = codec.decode_section(S, pos=pos)
-    rot = codec.decode_rotation(S)
+
+    # To decode the rotation, use an extended matrix
+    R = G[3 : 3 + 8, 7 : 7 + 8]
+    rot = codec.decode_rotation(R)
     print("pos:", pos, "sec:", sec, "rot:", rot)
     # > pos: (7, 3) sec: (10, 2) rot: 0
 
