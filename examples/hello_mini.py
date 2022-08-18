@@ -9,7 +9,7 @@ def main():
         mns_order=4,
         sns=[A1, A2],
         pfactors=(3, 5),
-        delta_range=(0, 14),
+        delta_range=(1, 15),
     )
 
     print(len(MNS), len(A1), len(A2))

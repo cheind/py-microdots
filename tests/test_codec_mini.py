@@ -16,7 +16,7 @@ def test_bitmatrix_decode_mini(size, section):
         4,
         [mini_sequences.A1, mini_sequences.A2],
         [3, 5],
-        (0, 14),
+        (1, 15),
     )
 
     m = anoto.encode_bitmatrix((size, size), section=section)
