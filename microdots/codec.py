@@ -45,7 +45,8 @@ class AnotoCodec:
             sns: a list of secondary number sequences which are also
                 quasi de Bruijn sequences or order n-1. The lengths
                 of these sequences should be relatively prime.
-            delta_range: a range possible difference values.
+            delta_range: a range of possible difference values. Inclusive
+                on both ends.
             pfactors: the sequence of prime factors to decompose
                 difference values into.
         """
