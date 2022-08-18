@@ -177,7 +177,7 @@ class AnotoCodec:
 
         raise DecodingError("Failed to determine pattern orientation.")
 
-    def decode_location(self, bits: np.ndarray) -> tuple[int, int]:
+    def decode_position(self, bits: np.ndarray) -> tuple[int, int]:
         """Decodes the (N,M,2) bitmatrix into a 2D location.
 
         The location is with respect to the section tile. The section tiling info
@@ -195,8 +195,8 @@ class AnotoCodec:
         # in case a bigger matrix is given
         bits = bits[: self.mns_order, : self.mns_order].astype(np.int8)
 
-        x = self._decode_location_along_direction(bits[..., 0].T)
-        y = self._decode_location_along_direction(bits[..., 1])
+        x = self._decode_position_along_direction(bits[..., 0].T)
+        y = self._decode_position_along_direction(bits[..., 1])
 
         return (x, y)
 
@@ -243,7 +243,7 @@ class AnotoCodec:
             (py_mns - pos[0] - sy) % self.mns_length,
         )
 
-    def _decode_location_along_direction(self, bits: np.ndarray) -> int:
+    def _decode_position_along_direction(self, bits: np.ndarray) -> int:
         """Decodes the position along a single direction.
 
         It is assumed that the MNS is along rows. So, if you decode the x-direction

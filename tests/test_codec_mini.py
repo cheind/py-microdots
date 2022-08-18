@@ -25,7 +25,7 @@ def test_bitmatrix_decode_mini(size, section):
     step = 0
     for y in range(size - 6):
         for x in range(size - 6):
-            xy = anoto.decode_location(m[y : y + 4, x : x + 4])
+            xy = anoto.decode_position(m[y : y + 4, x : x + 4])
             assert xy == (x, y)
             if step % 20 == 0:  # less impact on test performance
                 sec = anoto.decode_section(m[y : y + 4, x : x + 4], xy)
