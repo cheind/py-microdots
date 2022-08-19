@@ -44,6 +44,7 @@ def generate_pattern_plot():
     ax.grid(which="major", alpha=0.4, linestyle="--", color="gray", zorder=0)
     fig.tight_layout()
     fig.savefig("doc/anoto_pattern.pdf")
+    fig.savefig("doc/anoto_pattern.svg")
     plt.show()
 
 
