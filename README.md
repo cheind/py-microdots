@@ -10,7 +10,7 @@ This repository provides **py-microdots**, a Python library for encoding and dec
 
 The Anoto grid pattern encodes a unique 2D position for every possible 6x6 sub-array of dots. Assuming a grid resolution of 0.3 mm, this coding remains unique over the area of Europe and Asia. For clarity, the dots are significantly scaled up and nominal grid lines are shown.
 
-## Literature
+## Paper
 
 This implementation is based on my personal research on the Anoto coding. A detailed report is available [here](https://doi.org/10.5281/zenodo.7009235).
 
