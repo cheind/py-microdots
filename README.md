@@ -12,7 +12,7 @@ The Anoto grid pattern encodes a unique 2D position for every possible 6x6 sub-a
 
 ## Paper
 
-This implementation is based on my personal research on the Anoto coding. A detailed report is available [here](https://doi.org/10.5281/zenodo.7009235). Update 11/2022: The paper was accepted at the Computing Conference 2023.
+This implementation is based on my personal research on the Anoto coding. A detailed report is available [here](https://doi.org/10.5281/zenodo.7009235). Update 11/2022: The paper was accepted for presentation at the Computing Conference 2023.
 
 ## Features
 
