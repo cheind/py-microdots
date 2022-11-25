@@ -1,4 +1,4 @@
-![](https://github.com/cheind/py-microdots/actions/workflows/python-package.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7009235.svg)](https://doi.org/10.5281/zenodo.7009235)
+![](https://github.com/cheind/py-microdots/actions/workflows/python-package.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7361722.svg)](https://doi.org/10.5281/zenodo.7361722)
 
 # py-microdots
 
