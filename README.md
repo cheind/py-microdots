@@ -73,21 +73,12 @@ Please consider citing this work as
 ```
 @unpublished{heindl_christoph_2022_7009235,
   author       = {Heindl, Christoph},
-  title        = {py-microdots and the Anoto Codec},
+  title        = {Position Encoding in the Euclidean Plane Using the Anoto Codec and pymicrodots},
   note         = {{See https://github.com/cheind/py-microdots for
                    additional information.}},
   month        = aug,
   year         = 2022,
-  doi          = {10.5281/zenodo.7009235},
-  url          = {https://doi.org/10.5281/zenodo.7009235}
-}
-
-@software{pymicrodots2022,
-    author = {Heindl, Christoph},
-    doi = {10.5281/zenodo.7009235},
-    month = {8},
-    title = {{py-microdots and the Anoto Codec}},
-    version = {1.0.0},
-    year = {2022},
+  doi          = {10.5281/zenodo.7361722},
+  url          = {https://doi.org/10.5281/zenodo.7361722}
 }
 ```
