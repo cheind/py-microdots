@@ -10,9 +10,23 @@ This repository provides **py-microdots**, a Python library for encoding and dec
 
 The Anoto grid pattern encodes a unique 2D position for every possible 6x6 sub-array of dots. Assuming a grid resolution of 0.3 mm, this coding remains unique over the area of Europe and Asia. For clarity, the dots are significantly scaled up and nominal grid lines are shown.
 
-## Paper
+## Paper / Cite
 
-This implementation is based on my personal research on the Anoto coding. A detailed report is available [here](https://zenodo.org/record/7361722). Update 11/2022: The paper was accepted for presentation at the Computing Conference 2023.
+This implementation is based on my personal research on the Anoto coding. My findings are published in the following paper
+
+```
+@InProceedings{cheind2023microdots,
+  author="Heindl, Christoph",
+  title="py-microdots: Position Encoding in the Euclidean Plane Based on the Anoto Codec",
+  booktitle="Intelligent Computing. Computing Conference SAI",
+  year="2023",
+  publisher="Springer Nature Switzerland",
+  pages="219--235",
+  isbn="978-3-031-37963-5"
+}
+```
+
+A pre-print of the report is available [here](https://zenodo.org/record/7361722).
 
 ## Features
 
@@ -64,23 +78,6 @@ R = G[3 : 3 + 8, 7 : 7 + 8]
 rot = codec.decode_rotation(R)
 print("pos:", pos, "sec:", sec, "rot:", rot)
 # > pos: (7, 3) sec: (10, 2) rot: 0
-```
-
-## Cite
-
-Please consider citing this work as
-
-```
-@unpublished{heindl_christoph_2022_7009235,
-  author       = {Heindl, Christoph},
-  title        = {Position Encoding in the Euclidean Plane Using the Anoto Codec and py-microdots},
-  note         = {{See https://github.com/cheind/py-microdots for
-                   additional information.}},
-  month        = aug,
-  year         = 2022,
-  doi          = {10.5281/zenodo.7009234},
-  url          = {https://doi.org/10.5281/zenodo.7009234}
-}
 ```
 
 
